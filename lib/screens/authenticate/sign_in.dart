@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:untitled/%20services/auth.dart';
 import 'package:untitled/screens/authenticate/register.dart';
 import 'package:untitled/screens/home/home.dart';
@@ -39,8 +40,8 @@ class _SignInState extends State<SignIn> {
 
   var isLoading = false;
   var isResend = false;
-  var isLoginScreen = false;
-  var isOTPScreen = true;
+  var isLoginScreen = true;
+  var isOTPScreen = false;
   var verificationCode = '';
 
   bool _isButtonLoading = false;
@@ -306,7 +307,12 @@ class _SignInState extends State<SignIn> {
           backgroundColor: Colors.transparent,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              setState(() {
+                isOTPScreen = false;
+                isLoginScreen = true;
+              });
+            },
           ),
         ),
         body: SingleChildScrollView(
@@ -339,7 +345,22 @@ class _SignInState extends State<SignIn> {
                       ),
                     ),
                     SizedBox(height: 20,),
-                    /// Cia bus langeliai kur irasomas OTP kodas.
+                    FadeInDown(
+                      delay: Duration(milliseconds: 450),
+                      child: PinCodeTextField(
+                        appContext: context,
+                        pastedTextStyle: TextStyle(
+                          color: Colors.green.shade600,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        length: 6,
+                        keyboardType: TextInputType.number,
+                        cursorColor: Colors.black,
+                        onChanged: (String value) {
+
+                        },
+                      ),
+                    ),
                     SizedBox(height: 20,),
                     FadeInDown(
                       delay: Duration(milliseconds: 450),
@@ -374,6 +395,28 @@ class _SignInState extends State<SignIn> {
                             color: Colors.white, fontSize: 16.0),),
                       ),
                     ),
+                    SizedBox(height: 15,),
+                    FadeInDown(
+                      delay: Duration(milliseconds: 600),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Didn\'t receive code?',
+                            style: TextStyle(color: Colors.grey.shade700),),
+                          SizedBox(width: 5,),
+                          InkWell(
+                            onTap: () {
+                              /// Cia reikia implementinti paspaudima RESEND OTP.
+                              print('User asked new OTP');
+                            },
+                            child: Text('Resend OTP', style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w400),),
+                          )
+                        ],
+                      ),
+                    )
                   ]
               )
             )

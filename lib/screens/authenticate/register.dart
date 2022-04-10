@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:untitled/%20services/auth.dart';
 import 'package:untitled/screens/authenticate/sign_in.dart';
 import 'package:iconsax/iconsax.dart';
@@ -16,18 +19,35 @@ class Register extends StatefulWidget {
   State<Register> createState() => _RegisterState();
 }
 
+final FirebaseAuth _auth = FirebaseAuth.instance;
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
 class _RegisterState extends State<Register> {
-
-
-  final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
+  final _formKeyOTP = GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  String phoneNumber = 'numeris';
+  String userFirstName = '';
+  String userLastName = '';
+  String userOTPInput = '';
+
+  var isLoading = false;
+  var isResend = false;
+  var isRegisterScreen = true;
+  var isOTPScreen = false;
+  var verificationCode = '';
+
   bool wrongNumber = true;
   bool showError = false;
-  bool _isLoading = false;
-  String phoneNumber = '';
+  bool _isButtonLoading = false;
 
   @override
   Widget build(BuildContext context) {
+    return isOTPScreen ? returnOTPScreen() : returnRegisterScreen();
+  }
+
+  Widget returnRegisterScreen() {
     return Scaffold(
         backgroundColor: Colors.white,
         body: SingleChildScrollView(
@@ -232,15 +252,15 @@ class _RegisterState extends State<Register> {
                         }
 
                         setState(() {
-                          _isLoading = true;
+                          _isButtonLoading = true;
                         });
 
                         Future.delayed(Duration(milliseconds: 1500), () {
                           setState(() {
-                            _isLoading = false;
+                            _isButtonLoading = false;
+                            isOTPScreen = true;
+                            isRegisterScreen = false;
                           });
-
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => SignIn()));
                         });
                       },
                       color: Colors.black,
@@ -248,7 +268,7 @@ class _RegisterState extends State<Register> {
                           borderRadius: BorderRadius.circular(10)
                       ),
                       padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                      child: _isLoading  ? Container(
+                      child: _isButtonLoading  ? Container(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
@@ -281,6 +301,133 @@ class _RegisterState extends State<Register> {
               ),
             ),
           ),
+        )
+    );
+  }
+
+  Widget returnOTPScreen() {
+    return Scaffold(
+        backgroundColor: Colors.white,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              setState(() {
+                isOTPScreen = false;
+                isRegisterScreen = true;
+              });
+            },
+          ),
+        ),
+        body: SingleChildScrollView(
+            child: Form(
+                key: _formKeyOTP,
+                child: Container(
+                    padding: EdgeInsets.all(30),
+                    width: double.infinity,
+                    height: MediaQuery
+                        .of(context)
+                        .size
+                        .height,
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.network('https://ouch-cdn2.icons8.com/n9XQxiCMz0_zpnfg9oldMbtSsG7X6NwZi_kLccbLOKw/rs:fit:392:392/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNDMv/MGE2N2YwYzMtMjQw/NC00MTFjLWE2MTct/ZDk5MTNiY2IzNGY0/LnN2Zw.png', fit: BoxFit.cover, width: 280, ),
+                          SizedBox(height: 50,),
+                          FadeInDown(
+                            delay: Duration(milliseconds: 150),
+                            child: Text('VERIFICATION',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.grey.shade900),),
+                          ),
+                          FadeInDown(
+                            delay: Duration(milliseconds: 300),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20),
+                              child: Text('Enter the code sent to: $phoneNumber',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),),
+                            ),
+                          ),
+                          SizedBox(height: 20,),
+                          FadeInDown(
+                            delay: Duration(milliseconds: 450),
+                            child: PinCodeTextField(
+                              appContext: context,
+                              pastedTextStyle: TextStyle(
+                                color: Colors.green.shade600,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              length: 6,
+                              keyboardType: TextInputType.number,
+                              cursorColor: Colors.black,
+                              onChanged: (String value) {
+
+                              },
+                            ),
+                          ),
+                          SizedBox(height: 20,),
+                          FadeInDown(
+                            delay: Duration(milliseconds: 450),
+                            child: MaterialButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isButtonLoading = true;
+                                });
+
+                                Future.delayed(Duration(milliseconds: 1500), () {
+                                  setState(() {
+                                    _isButtonLoading = false;
+                                  });
+                                });
+                              },
+                              color: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 15, horizontal: 30),
+                              child: _isButtonLoading ? Container(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  backgroundColor: Colors.white,
+                                  color: Colors.black,
+                                  strokeWidth: 2,
+                                ),
+                              ) :
+                              Text("Verify", style: TextStyle(
+                                  color: Colors.white, fontSize: 16.0),),
+                            ),
+                          ),
+                          SizedBox(height: 15,),
+                          FadeInDown(
+                            delay: Duration(milliseconds: 600),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('Didn\'t receive code?',
+                                  style: TextStyle(color: Colors.grey.shade700),),
+                                SizedBox(width: 5,),
+                                InkWell(
+                                  onTap: () {
+                                    /// Cia reikia implementinti paspaudima RESEND OTP.
+                                    print('User asked new OTP');
+                                  },
+                                  child: Text('Resend OTP', style: TextStyle(
+                                      color: Colors.blue,
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.w400),),
+                                )
+                              ],
+                            ),
+                          )
+                        ]
+                    )
+                )
+            )
         )
     );
   }
