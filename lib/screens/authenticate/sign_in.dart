@@ -1,9 +1,15 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
-//import 'package:untitled/%20services/auth.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:untitled/%20services/auth.dart';
 import 'package:untitled/screens/authenticate/register.dart';
 import 'package:untitled/screens/home/home.dart';
+import 'package:untitled/shared/Loading.dart';
+import 'package:untitled/shared/constants.dart';
 // For Overrided MaterialPageRout to tCustomPageRoute. To stop animation
 class CustomPageRoute extends MaterialPageRoute {
   CustomPageRoute({builder}) : super(builder: builder);
@@ -13,6 +19,8 @@ class CustomPageRoute extends MaterialPageRoute {
 }
 //----------------------------------------------------------------------
 
+final FirebaseAuth _auth = FirebaseAuth.instance;
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 class SignIn extends StatefulWidget {
   const SignIn({Key? key}) : super(key: key);
@@ -23,19 +31,50 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
-
-  //final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
+  final _formKeyOTP = GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  //text field state
+  String phoneNumber = 'numeris';
+  final TextEditingController otpController = new TextEditingController();
+
+  var isLoading = false;
+  var isResend = false;
+  var isLoginScreen = true;
+  var isOTPScreen = false;
+  var verificationCode = '';
+
+  bool _isButtonLoading = false;
   bool wrongNumber = true;
-  String email ='';
-  String password = '';
   bool showError = false;
 
   @override
+  void initState() {
+    if (_auth.currentUser != null) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => Home(),
+        ),
+            (route) => false,
+      );
+    }
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the Widget is disposed
+    otpController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    return isOTPScreen ? returnOTPScreen() : returnLoginScreen();
+  }
+
+  Widget returnLoginScreen() {
     return Scaffold(
         backgroundColor: Colors.white,
         body: SingleChildScrollView(
@@ -44,14 +83,19 @@ class _SignInState extends State<SignIn> {
                 child: Container(
                     padding: EdgeInsets.all(30),
                     width: double.infinity,
-                    height: MediaQuery.of(context).size.height,
+                    height: MediaQuery
+                        .of(context)
+                        .size
+                        .height,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         FadeInDown(
                           delay: Duration(milliseconds: 150),
                           child: Image(
-                            image: AssetImage("assets/images/B_2.png"), fit: BoxFit.cover, width:200,
+                            image: AssetImage("assets/images/B_2.png"),
+                            fit: BoxFit.cover,
+                            width: 200,
                           ),
                         ),
 
@@ -59,15 +103,19 @@ class _SignInState extends State<SignIn> {
                         FadeInDown(
                           delay: Duration(milliseconds: 300),
                           child: Text('LOGIN',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.grey.shade900),),
+                            style: TextStyle(fontWeight: FontWeight.bold,
+                                fontSize: 24,
+                                color: Colors.grey.shade900),),
                         ),
                         FadeInDown(
                           delay: Duration(milliseconds: 450),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 15.0, horizontal: 20),
                             child: Text('Login to your account',
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 14, color: Colors.grey.shade700),),
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.grey.shade700),),
                           ),
                         ),
                         SizedBox(height: 25,),
@@ -78,34 +126,41 @@ class _SignInState extends State<SignIn> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.grey.shade200, width: 2),
+                                  border: Border.all(
+                                      color: Colors.grey.shade200, width: 2),
                                 ),
                                 child: Stack(
                                   children: [
                                     InternationalPhoneNumberInput(
                                       onInputChanged: (PhoneNumber number) {
-                                        print(number.phoneNumber);
+                                        setState(() {
+                                          phoneNumber = number.phoneNumber!;
+                                        });
                                       },
                                       onInputValidated: (bool value) {
                                         if (value) {
                                           setState(() {
                                             wrongNumber = false;
+                                            print('Phone number: $phoneNumber');
                                           });
                                         }
                                         else {
                                           setState(() {
                                             wrongNumber = true;
+                                            phoneNumber = '';
                                           });
                                         }
                                         print(value);
                                       },
                                       selectorConfig: SelectorConfig(
-                                        selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
+                                        selectorType: PhoneInputSelectorType
+                                            .BOTTOM_SHEET,
                                       ),
 
                                       initialValue: PhoneNumber(isoCode: 'LT'),
                                       ignoreBlank: false,
-                                      autoValidateMode: AutovalidateMode.disabled,
+                                      autoValidateMode: AutovalidateMode
+                                          .disabled,
                                       validator: (val) {
                                         if (wrongNumber) {
                                           setState(() {
@@ -119,22 +174,26 @@ class _SignInState extends State<SignIn> {
                                         return null;
                                       },
 
-                                      selectorTextStyle: TextStyle(color: Colors.black),
+                                      selectorTextStyle: TextStyle(color: Colors
+                                          .black),
                                       textFieldController: TextEditingController(),
                                       formatInput: false,
                                       maxLength: 9,
                                       keyboardType:
-                                      TextInputType.numberWithOptions(signed: true, decimal: true),
+                                      TextInputType.numberWithOptions(
+                                          signed: true, decimal: true),
                                       cursorColor: Colors.black,
                                       inputDecoration: InputDecoration(
-                                        contentPadding: EdgeInsets.only(bottom: 15, left: 0),
+                                        contentPadding: EdgeInsets.only(
+                                            bottom: 15, left: 0),
                                         border: InputBorder.none,
                                         hintText: 'Phone Number',
-                                        hintStyle: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14, fontWeight: FontWeight.w400),
+                                        hintStyle: TextStyle(
+                                            color: Colors.black.withOpacity(
+                                                0.5),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400),
                                       ),
-                                      onSaved: (PhoneNumber number) {
-                                        print('On Saved: $number');
-                                      },
                                     ),
                                     Positioned(
                                       left: 90,
@@ -156,9 +215,12 @@ class _SignInState extends State<SignIn> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                (wrongNumber && showError) ? 'Number is invalid' : '',
+                                (wrongNumber && showError)
+                                    ? 'Number is invalid'
+                                    : '',
                                 textAlign: TextAlign.left,
-                                style: TextStyle(color: Colors.red, fontSize: 12),
+                                style: TextStyle(
+                                    color: Colors.red, fontSize: 12),
                               ),
                             ),
                           ],
@@ -167,7 +229,7 @@ class _SignInState extends State<SignIn> {
                         FadeInDown(
                           delay: Duration(milliseconds: 750),
                           child: MaterialButton(
-                            onPressed: (){
+                            onPressed: () {
                               if (wrongNumber) {
                                 setState(() {
                                   showError = true;
@@ -176,23 +238,24 @@ class _SignInState extends State<SignIn> {
                               }
 
                               setState(() {
-                                _isLoading = true;
+                                _isButtonLoading = true;
                               });
 
                               Future.delayed(Duration(milliseconds: 1500), () {
                                 setState(() {
-                                  _isLoading = false;
+                                  _isButtonLoading = false;
+                                  isOTPScreen = true;
+                                  isLoginScreen = false;
                                 });
-
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
                               });
                             },
                             color: Colors.black,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)
                             ),
-                            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                            child: _isLoading  ? Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 15, horizontal: 30),
+                            child: _isButtonLoading ? Container(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
@@ -201,7 +264,8 @@ class _SignInState extends State<SignIn> {
                                 strokeWidth: 2,
                               ),
                             ) :
-                            Text("Login", style: TextStyle(color: Colors.white, fontSize: 16.0),),
+                            Text("Login", style: TextStyle(
+                                color: Colors.white, fontSize: 16.0),),
                           ),
                         ),
                         SizedBox(height: 15,),
@@ -210,13 +274,18 @@ class _SignInState extends State<SignIn> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('Don\'t have an account?', style: TextStyle(color: Colors.grey.shade700),),
+                              Text('Don\'t have an account?',
+                                style: TextStyle(color: Colors.grey.shade700),),
                               SizedBox(width: 5,),
                               InkWell(
                                 onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) => Register()));
                                 },
-                                child: Text('Register', style: TextStyle(color: Colors.blue, fontSize: 14.0, fontWeight: FontWeight.w400),),
+                                child: Text('Register', style: TextStyle(
+                                    color: Colors.blue,
+                                    fontSize: 14.0,
+                                    fontWeight: FontWeight.w400),),
                               )
                             ],
                           ),
@@ -225,6 +294,133 @@ class _SignInState extends State<SignIn> {
                     )
                 )
             )
+        )
+    );
+  }
+
+  Widget returnOTPScreen() {
+    return Scaffold(
+        backgroundColor: Colors.white,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              setState(() {
+                isOTPScreen = false;
+                isLoginScreen = true;
+              });
+            },
+          ),
+        ),
+        body: SingleChildScrollView(
+          child: Form(
+            key: _formKeyOTP,
+            child: Container(
+              padding: EdgeInsets.all(30),
+              width: double.infinity,
+              height: MediaQuery
+                  .of(context)
+                  .size
+                  .height,
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.network('https://ouch-cdn2.icons8.com/n9XQxiCMz0_zpnfg9oldMbtSsG7X6NwZi_kLccbLOKw/rs:fit:392:392/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNDMv/MGE2N2YwYzMtMjQw/NC00MTFjLWE2MTct/ZDk5MTNiY2IzNGY0/LnN2Zw.png', fit: BoxFit.cover, width: 280, ),
+                    SizedBox(height: 50,),
+                    FadeInDown(
+                      delay: Duration(milliseconds: 150),
+                      child: Text('VERIFICATION',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.grey.shade900),),
+                    ),
+                    FadeInDown(
+                      delay: Duration(milliseconds: 300),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20),
+                        child: Text('Enter the code sent to: $phoneNumber',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: Colors.grey.shade700),),
+                      ),
+                    ),
+                    SizedBox(height: 20,),
+                    FadeInDown(
+                      delay: Duration(milliseconds: 450),
+                      child: PinCodeTextField(
+                        appContext: context,
+                        pastedTextStyle: TextStyle(
+                          color: Colors.green.shade600,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        length: 6,
+                        keyboardType: TextInputType.number,
+                        cursorColor: Colors.black,
+                        onChanged: (String value) {
+
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 20,),
+                    FadeInDown(
+                      delay: Duration(milliseconds: 450),
+                      child: MaterialButton(
+                        onPressed: () {
+                          setState(() {
+                            _isButtonLoading = true;
+                          });
+
+                          Future.delayed(Duration(milliseconds: 1500), () {
+                            setState(() {
+                              _isButtonLoading = false;
+                            });
+                          });
+                        },
+                        color: Colors.black,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)
+                        ),
+                        padding: EdgeInsets.symmetric(
+                            vertical: 15, horizontal: 30),
+                        child: _isButtonLoading ? Container(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            backgroundColor: Colors.white,
+                            color: Colors.black,
+                            strokeWidth: 2,
+                          ),
+                        ) :
+                        Text("Verify", style: TextStyle(
+                            color: Colors.white, fontSize: 16.0),),
+                      ),
+                    ),
+                    SizedBox(height: 15,),
+                    FadeInDown(
+                      delay: Duration(milliseconds: 600),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Didn\'t receive code?',
+                            style: TextStyle(color: Colors.grey.shade700),),
+                          SizedBox(width: 5,),
+                          InkWell(
+                            onTap: () {
+                              /// Cia reikia implementinti paspaudima RESEND OTP.
+                              print('User asked new OTP');
+                            },
+                            child: Text('Resend OTP', style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w400),),
+                          )
+                        ],
+                      ),
+                    )
+                  ]
+              )
+            )
+          )
         )
     );
   }

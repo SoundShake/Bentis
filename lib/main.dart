@@ -22,8 +22,8 @@ class MyApp extends StatelessWidget {
       },
       initialData: null,
       child:const MaterialApp(
-       home: Wrapper(),
-     ),
+        home: Wrapper(),
+      ),
     );
   }
 }
