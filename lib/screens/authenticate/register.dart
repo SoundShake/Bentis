@@ -1,9 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:untitled/%20services/auth.dart';
 import 'package:untitled/screens/authenticate/sign_in.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
+
+import '../home/home.dart';
+
+final FirebaseAuth _auth = FirebaseAuth.instance;
+final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
 
 class Register extends StatefulWidget {
   const Register({Key? key}) : super(key: key);
@@ -13,17 +21,53 @@ class Register extends StatefulWidget {
   State<Register> createState() => _RegisterState();
 }
 
+
 class _RegisterState extends State<Register> {
-
-
-  final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
+  final _formKeyOTP = GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final TextEditingController numberController = new TextEditingController();
+  final TextEditingController otpController = new TextEditingController();
+  final TextEditingController firstName = new TextEditingController();
+  final TextEditingController lastName = new TextEditingController();
+
+  bool isLoading = false;
+  bool isResend = false;
+  var isRegisterScreen = true;
+  var isOTPScreen = false;
+  String verificationCode = '';
+
   bool wrongNumber = true;
   bool showError = false;
   bool _isLoading = false;
 
   @override
+  void initState() {
+    if (_auth.currentUser != null) {
+      Navigator.pushAndRemoveUntil(context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => Home(),
+        ), (route) => false,
+      );
+    }
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    numberController.dispose();
+    otpController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    return isOTPScreen ? returnOTPScreen() : returnRegisterScreen();
+  }
+
+  @override
+  Widget returnRegisterScreen() {
     return Scaffold(
         backgroundColor: Colors.white,
         body: SingleChildScrollView(
@@ -233,9 +277,9 @@ class _RegisterState extends State<Register> {
                         Future.delayed(Duration(milliseconds: 1500), () {
                           setState(() {
                             _isLoading = false;
+                            isOTPScreen = true;
+                            isRegisterScreen = false;
                           });
-
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => SignIn()));
                         });
                       },
                       color: Colors.black,
@@ -278,5 +322,261 @@ class _RegisterState extends State<Register> {
           ),
         )
     );
+  }
+
+  Widget returnOTPScreen() {
+    return Scaffold(
+        key: _scaffoldKey,
+        appBar: new AppBar(
+          title: Text('OTP Screen'),
+        ),
+        body: ListView(children: [
+          Form(
+            key: _formKeyOTP,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                    child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10.0, horizontal: 10.0),
+                        child: Text(
+                            !isLoading
+                                ? "Enter OTP from SMS"
+                                : "Sending OTP code SMS",
+                            textAlign: TextAlign.center))),
+                !isLoading
+                    ? Container(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 10.0),
+                      child: TextFormField(
+                        enabled: !isLoading,
+                        controller: otpController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        initialValue: null,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                            labelText: 'OTP',
+                            labelStyle: TextStyle(color: Colors.black)),
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter OTP';
+                          }
+                        },
+                      ),
+                    ))
+                    : Container(),
+                !isLoading
+                    ? Container(
+                    margin: EdgeInsets.only(top: 40, bottom: 5),
+                    child: Padding(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 10.0),
+                        child: new ElevatedButton(
+                          onPressed: () async {
+                            if (_formKeyOTP.currentState!.validate()) {
+                              // If the form is valid, we want to show a loading Snackbar
+                              // If the form is valid, we want to do firebase signup...
+                              setState(() {
+                                isResend = false;
+                                isLoading = true;
+                              });
+                              try {
+                                await _auth
+                                    .signInWithCredential(
+                                    PhoneAuthProvider.credential(
+                                        verificationId:
+                                        verificationCode,
+                                        smsCode: otpController.text
+                                            .toString()))
+                                    .then((user) async => {
+                                  //sign in was success
+                                  if (user != null)
+                                    {
+                                      //store registration details in firestore database
+                                      setState(() {
+                                        isLoading = false;
+                                        isResend = false;
+                                      }),
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (BuildContext
+                                          context) =>
+                                              Home(),
+                                        ),
+                                            (route) => false,
+                                      )
+                                    }
+                                })
+                                    .catchError((error) => {
+                                  setState(() {
+                                    isLoading = false;
+                                    isResend = true;
+                                  }),
+                                });
+                                setState(() {
+                                  isLoading = true;
+                                });
+                              } catch (e) {
+                                setState(() {
+                                  isLoading = false;
+                                });
+                              }
+                            }
+                          },
+                          child: new Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 15.0,
+                              horizontal: 15.0,
+                            ),
+                            child: new Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                new Expanded(
+                                  child: Text(
+                                    "Submit",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )))
+                    : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          CircularProgressIndicator(
+                            backgroundColor:
+                            Theme.of(context).primaryColor,
+                          )
+                        ].where((c) => c != null).toList(),
+                      )
+                    ]),
+                isResend
+                    ? Container(
+                    margin: EdgeInsets.only(top: 40, bottom: 5),
+                    child: Padding(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 10.0),
+                        child: new ElevatedButton(
+                          onPressed: () async {
+                            setState(() {
+                              isResend = false;
+                              isLoading = true;
+                            });
+                            await login();
+                          },
+                          child: new Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 15.0,
+                              horizontal: 15.0,
+                            ),
+                            child: new Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                new Expanded(
+                                  child: Text(
+                                    "Resend Code",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )))
+                    : Column()
+              ],
+            ),
+          )
+        ]));
+  }
+  displaySnackBar(text) {
+    final snackBar = SnackBar(content: Text(text));
+    _scaffoldKey.currentState!.showSnackBar(snackBar);
+  }
+
+  Future login() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    var phoneNumber = '+370 ' + numberController.text.trim();
+
+    //first we will check if a user with this cell number exists
+    var isValidUser = false;
+    var number = numberController.text.trim();
+
+    await _fireStore
+        .collection('users')
+        .where('cellnumber', isEqualTo: number)
+        .get()
+        .then((result) {
+      if (result.docs.length > 0) {
+        isValidUser = true;
+      }
+    });
+
+    if (isValidUser) {
+      //ok, we have a valid user, now lets do otp verification
+      var verifyPhoneNumber = _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (phoneAuthCredential) {
+          //auto code complete (not manually)
+          _auth.signInWithCredential(phoneAuthCredential).then((user) async => {
+            if (user != null)
+              {
+                //redirect
+                setState(() {
+                  isLoading = false;
+                  isOTPScreen = false;
+                }),
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => Home(),
+                  ),
+                      (route) => false,
+                )
+              }
+          });
+        },
+        verificationFailed: (FirebaseAuthException error) {
+          displaySnackBar('Validation error, please try again later');
+          setState(() {
+            isLoading = false;
+          });
+        },
+        codeSent: (verificationId, [forceResendingToken]) {
+          setState(() {
+            isLoading = false;
+            verificationCode = verificationId;
+            isOTPScreen = true;
+          });
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          setState(() {
+            isLoading = false;
+            verificationCode = verificationId;
+          });
+        },
+        timeout: Duration(seconds: 60),
+      );
+      await verifyPhoneNumber;
+    } else {
+      //non valid user
+      setState(() {
+        isLoading = false;
+      });
+      displaySnackBar('Number not found, please sign up first');
+    }
   }
 }
