@@ -4,9 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
-//import 'package:untitled/%20services/auth.dart';
+import 'package:untitled/%20services/auth.dart';
 import 'package:untitled/screens/authenticate/register.dart';
 import 'package:untitled/screens/home/home.dart';
+import 'package:untitled/shared/Loading.dart';
+import 'package:untitled/shared/constants.dart';
 // For Overrided MaterialPageRout to tCustomPageRoute. To stop animation
 class CustomPageRoute extends MaterialPageRoute {
   CustomPageRoute({builder}) : super(builder: builder);
@@ -17,7 +19,7 @@ class CustomPageRoute extends MaterialPageRoute {
 //----------------------------------------------------------------------
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
-final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 class SignIn extends StatefulWidget {
   const SignIn({Key? key}) : super(key: key);
@@ -32,14 +34,14 @@ class _SignInState extends State<SignIn> {
   final _formKeyOTP = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final TextEditingController numberController = new TextEditingController();
+  String phoneNumber = 'numeris';
   final TextEditingController otpController = new TextEditingController();
 
-  bool isLoading = false;
-  bool isResend = false;
-  var isLoginScreen = true;
-  var isOTPScreen = false;
-  String verificationCode = '';
+  var isLoading = false;
+  var isResend = false;
+  var isLoginScreen = false;
+  var isOTPScreen = true;
+  var verificationCode = '';
 
   bool _isButtonLoading = false;
   bool wrongNumber = true;
@@ -48,10 +50,12 @@ class _SignInState extends State<SignIn> {
   @override
   void initState() {
     if (_auth.currentUser != null) {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(
-            builder: (BuildContext context) => Home(),
-          ), (route) => false,
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => Home(),
+        ),
+            (route) => false,
       );
     }
     super.initState();
@@ -59,7 +63,7 @@ class _SignInState extends State<SignIn> {
 
   @override
   void dispose() {
-    numberController.dispose();
+    // Clean up the controller when the Widget is disposed
     otpController.dispose();
     super.dispose();
   }
@@ -69,7 +73,6 @@ class _SignInState extends State<SignIn> {
     return isOTPScreen ? returnOTPScreen() : returnLoginScreen();
   }
 
-  @override
   Widget returnLoginScreen() {
     return Scaffold(
         backgroundColor: Colors.white,
@@ -79,14 +82,19 @@ class _SignInState extends State<SignIn> {
                 child: Container(
                     padding: EdgeInsets.all(30),
                     width: double.infinity,
-                    height: MediaQuery.of(context).size.height,
+                    height: MediaQuery
+                        .of(context)
+                        .size
+                        .height,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         FadeInDown(
                           delay: Duration(milliseconds: 150),
                           child: Image(
-                            image: AssetImage("assets/images/B_2.png"), fit: BoxFit.cover, width:200,
+                            image: AssetImage("assets/images/B_2.png"),
+                            fit: BoxFit.cover,
+                            width: 200,
                           ),
                         ),
 
@@ -94,15 +102,19 @@ class _SignInState extends State<SignIn> {
                         FadeInDown(
                           delay: Duration(milliseconds: 300),
                           child: Text('LOGIN',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.grey.shade900),),
+                            style: TextStyle(fontWeight: FontWeight.bold,
+                                fontSize: 24,
+                                color: Colors.grey.shade900),),
                         ),
                         FadeInDown(
                           delay: Duration(milliseconds: 450),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 15.0, horizontal: 20),
                             child: Text('Login to your account',
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 14, color: Colors.grey.shade700),),
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.grey.shade700),),
                           ),
                         ),
                         SizedBox(height: 25,),
@@ -113,34 +125,41 @@ class _SignInState extends State<SignIn> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.grey.shade200, width: 2),
+                                  border: Border.all(
+                                      color: Colors.grey.shade200, width: 2),
                                 ),
                                 child: Stack(
                                   children: [
                                     InternationalPhoneNumberInput(
                                       onInputChanged: (PhoneNumber number) {
-                                        print(number.phoneNumber);
+                                        setState(() {
+                                          phoneNumber = number.phoneNumber!;
+                                        });
                                       },
                                       onInputValidated: (bool value) {
                                         if (value) {
                                           setState(() {
                                             wrongNumber = false;
+                                            print('Phone number: $phoneNumber');
                                           });
                                         }
                                         else {
                                           setState(() {
                                             wrongNumber = true;
+                                            phoneNumber = '';
                                           });
                                         }
                                         print(value);
                                       },
                                       selectorConfig: SelectorConfig(
-                                        selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
+                                        selectorType: PhoneInputSelectorType
+                                            .BOTTOM_SHEET,
                                       ),
 
                                       initialValue: PhoneNumber(isoCode: 'LT'),
                                       ignoreBlank: false,
-                                      autoValidateMode: AutovalidateMode.disabled,
+                                      autoValidateMode: AutovalidateMode
+                                          .disabled,
                                       validator: (val) {
                                         if (wrongNumber) {
                                           setState(() {
@@ -154,22 +173,26 @@ class _SignInState extends State<SignIn> {
                                         return null;
                                       },
 
-                                      selectorTextStyle: TextStyle(color: Colors.black),
+                                      selectorTextStyle: TextStyle(color: Colors
+                                          .black),
                                       textFieldController: TextEditingController(),
                                       formatInput: false,
                                       maxLength: 9,
                                       keyboardType:
-                                      TextInputType.numberWithOptions(signed: true, decimal: true),
+                                      TextInputType.numberWithOptions(
+                                          signed: true, decimal: true),
                                       cursorColor: Colors.black,
                                       inputDecoration: InputDecoration(
-                                        contentPadding: EdgeInsets.only(bottom: 15, left: 0),
+                                        contentPadding: EdgeInsets.only(
+                                            bottom: 15, left: 0),
                                         border: InputBorder.none,
                                         hintText: 'Phone Number',
-                                        hintStyle: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 14, fontWeight: FontWeight.w400),
+                                        hintStyle: TextStyle(
+                                            color: Colors.black.withOpacity(
+                                                0.5),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400),
                                       ),
-                                      onSaved: (PhoneNumber number) {
-                                        print('On Saved: $number');
-                                      },
                                     ),
                                     Positioned(
                                       left: 90,
@@ -191,9 +214,12 @@ class _SignInState extends State<SignIn> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                (wrongNumber && showError) ? 'Number is invalid' : '',
+                                (wrongNumber && showError)
+                                    ? 'Number is invalid'
+                                    : '',
                                 textAlign: TextAlign.left,
-                                style: TextStyle(color: Colors.red, fontSize: 12),
+                                style: TextStyle(
+                                    color: Colors.red, fontSize: 12),
                               ),
                             ),
                           ],
@@ -202,7 +228,7 @@ class _SignInState extends State<SignIn> {
                         FadeInDown(
                           delay: Duration(milliseconds: 750),
                           child: MaterialButton(
-                            onPressed: (){
+                            onPressed: () {
                               if (wrongNumber) {
                                 setState(() {
                                   showError = true;
@@ -220,16 +246,15 @@ class _SignInState extends State<SignIn> {
                                   isOTPScreen = true;
                                   isLoginScreen = false;
                                 });
-
-                                //Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
                               });
                             },
                             color: Colors.black,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)
                             ),
-                            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                            child: _isButtonLoading  ? Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 15, horizontal: 30),
+                            child: _isButtonLoading ? Container(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
@@ -238,7 +263,8 @@ class _SignInState extends State<SignIn> {
                                 strokeWidth: 2,
                               ),
                             ) :
-                            Text("Login", style: TextStyle(color: Colors.white, fontSize: 16.0),),
+                            Text("Login", style: TextStyle(
+                                color: Colors.white, fontSize: 16.0),),
                           ),
                         ),
                         SizedBox(height: 15,),
@@ -247,13 +273,18 @@ class _SignInState extends State<SignIn> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('Don\'t have an account?', style: TextStyle(color: Colors.grey.shade700),),
+                              Text('Don\'t have an account?',
+                                style: TextStyle(color: Colors.grey.shade700),),
                               SizedBox(width: 5,),
                               InkWell(
                                 onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => Register()));
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) => Register()));
                                 },
-                                child: Text('Register', style: TextStyle(color: Colors.blue, fontSize: 14.0, fontWeight: FontWeight.w400),),
+                                child: Text('Register', style: TextStyle(
+                                    color: Colors.blue,
+                                    fontSize: 14.0,
+                                    fontWeight: FontWeight.w400),),
                               )
                             ],
                           ),
@@ -268,258 +299,86 @@ class _SignInState extends State<SignIn> {
 
   Widget returnOTPScreen() {
     return Scaffold(
-        key: _scaffoldKey,
-        appBar: new AppBar(
-          title: Text('OTP Screen'),
+        backgroundColor: Colors.white,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ),
-        body: ListView(children: [
-          Form(
+        body: SingleChildScrollView(
+          child: Form(
             key: _formKeyOTP,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                    child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 10.0, horizontal: 10.0),
-                        child: Text(
-                            !isLoading
-                                ? "Enter OTP from SMS"
-                                : "Sending OTP code SMS",
-                            textAlign: TextAlign.center))),
-                !isLoading
-                    ? Container(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10.0, horizontal: 10.0),
-                      child: TextFormField(
-                        enabled: !isLoading,
-                        controller: otpController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                        initialValue: null,
-                        autofocus: true,
-                        decoration: InputDecoration(
-                            labelText: 'OTP',
-                            labelStyle: TextStyle(color: Colors.black)),
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'Please enter OTP';
-                          }
-                        },
+            child: Container(
+              padding: EdgeInsets.all(30),
+              width: double.infinity,
+              height: MediaQuery
+                  .of(context)
+                  .size
+                  .height,
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.network('https://ouch-cdn2.icons8.com/n9XQxiCMz0_zpnfg9oldMbtSsG7X6NwZi_kLccbLOKw/rs:fit:392:392/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNDMv/MGE2N2YwYzMtMjQw/NC00MTFjLWE2MTct/ZDk5MTNiY2IzNGY0/LnN2Zw.png', fit: BoxFit.cover, width: 280, ),
+                    SizedBox(height: 50,),
+                    FadeInDown(
+                      delay: Duration(milliseconds: 150),
+                      child: Text('VERIFICATION',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.grey.shade900),),
+                    ),
+                    FadeInDown(
+                      delay: Duration(milliseconds: 300),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20),
+                        child: Text('Enter the code sent to: $phoneNumber',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: Colors.grey.shade700),),
                       ),
-                    ))
-                    : Container(),
-                !isLoading
-                    ? Container(
-                    margin: EdgeInsets.only(top: 40, bottom: 5),
-                    child: Padding(
-                        padding:
-                        const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: new ElevatedButton(
-                          onPressed: () async {
-                            if (_formKeyOTP.currentState!.validate()) {
-                              // If the form is valid, we want to show a loading Snackbar
-                              // If the form is valid, we want to do firebase signup...
-                              setState(() {
-                                isResend = false;
-                                isLoading = true;
-                              });
-                              try {
-                                await _auth
-                                    .signInWithCredential(
-                                    PhoneAuthProvider.credential(
-                                        verificationId:
-                                        verificationCode,
-                                        smsCode: otpController.text
-                                            .toString()))
-                                    .then((user) async => {
-                                  //sign in was success
-                                  if (user != null)
-                                    {
-                                      //store registration details in firestore database
-                                      setState(() {
-                                        isLoading = false;
-                                        isResend = false;
-                                      }),
-                                      Navigator.pushAndRemoveUntil(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (BuildContext
-                                          context) =>
-                                              Home(),
-                                        ),
-                                            (route) => false,
-                                      )
-                                    }
-                                })
-                                    .catchError((error) => {
-                                  setState(() {
-                                    isLoading = false;
-                                    isResend = true;
-                                  }),
-                                });
-                                setState(() {
-                                  isLoading = true;
-                                });
-                              } catch (e) {
-                                setState(() {
-                                  isLoading = false;
-                                });
-                              }
-                            }
-                          },
-                          child: new Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 15.0,
-                              horizontal: 15.0,
-                            ),
-                            child: new Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                new Expanded(
-                                  child: Text(
-                                    "Submit",
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )))
-                    : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          CircularProgressIndicator(
-                            backgroundColor:
-                            Theme.of(context).primaryColor,
-                          )
-                        ].where((c) => c != null).toList(),
-                      )
-                    ]),
-                isResend
-                    ? Container(
-                    margin: EdgeInsets.only(top: 40, bottom: 5),
-                    child: Padding(
-                        padding:
-                        const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: new ElevatedButton(
-                          onPressed: () async {
+                    ),
+                    SizedBox(height: 20,),
+                    /// Cia bus langeliai kur irasomas OTP kodas.
+                    SizedBox(height: 20,),
+                    FadeInDown(
+                      delay: Duration(milliseconds: 450),
+                      child: MaterialButton(
+                        onPressed: () {
+                          setState(() {
+                            _isButtonLoading = true;
+                          });
+
+                          Future.delayed(Duration(milliseconds: 1500), () {
                             setState(() {
-                              isResend = false;
-                              isLoading = true;
+                              _isButtonLoading = false;
                             });
-                            await login();
-                          },
-                          child: new Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 15.0,
-                              horizontal: 15.0,
-                            ),
-                            child: new Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                new Expanded(
-                                  child: Text(
-                                    "Resend Code",
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          });
+                        },
+                        color: Colors.black,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)
+                        ),
+                        padding: EdgeInsets.symmetric(
+                            vertical: 15, horizontal: 30),
+                        child: _isButtonLoading ? Container(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            backgroundColor: Colors.white,
+                            color: Colors.black,
+                            strokeWidth: 2,
                           ),
-                        )))
-                    : Column()
-              ],
-            ),
+                        ) :
+                        Text("Verify", style: TextStyle(
+                            color: Colors.white, fontSize: 16.0),),
+                      ),
+                    ),
+                  ]
+              )
+            )
           )
-        ]));
+        )
+    );
   }
-  displaySnackBar(text) {
-    final snackBar = SnackBar(content: Text(text));
-    _scaffoldKey.currentState!.showSnackBar(snackBar);
-  }
-
-  Future login() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    var phoneNumber = '+370 ' + numberController.text.trim();
-
-    //first we will check if a user with this cell number exists
-    var isValidUser = false;
-    var number = numberController.text.trim();
-
-    await _fireStore
-        .collection('users')
-        .where('cellnumber', isEqualTo: number)
-        .get()
-        .then((result) {
-      if (result.docs.length > 0) {
-        isValidUser = true;
-      }
-    });
-
-    if (isValidUser) {
-      //ok, we have a valid user, now lets do otp verification
-      var verifyPhoneNumber = _auth.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationCompleted: (phoneAuthCredential) {
-          //auto code complete (not manually)
-          _auth.signInWithCredential(phoneAuthCredential).then((user) async => {
-            if (user != null)
-              {
-                //redirect
-                setState(() {
-                  isLoading = false;
-                  isOTPScreen = false;
-                }),
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => Home(),
-                  ),
-                      (route) => false,
-                )
-              }
-          });
-        },
-        verificationFailed: (FirebaseAuthException error) {
-          displaySnackBar('Validation error, please try again later');
-          setState(() {
-            isLoading = false;
-          });
-        },
-        codeSent: (verificationId, [forceResendingToken]) {
-          setState(() {
-            isLoading = false;
-            verificationCode = verificationId;
-            isOTPScreen = true;
-          });
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          setState(() {
-            isLoading = false;
-            verificationCode = verificationId;
-          });
-        },
-        timeout: Duration(seconds: 60),
-      );
-      await verifyPhoneNumber;
-    } else {
-      //non valid user
-      setState(() {
-        isLoading = false;
-      });
-      displaySnackBar('Number not found, please sign up first');
-    }
-  }
-
 }
