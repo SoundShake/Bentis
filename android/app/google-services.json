@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "595247630654",
+    "firebase_url": "https://bentis-c851a-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "bentis-c851a",
     "storage_bucket": "bentis-c851a.appspot.com"
   },
@@ -13,6 +14,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "595247630654-ng69vld2ifddhetis1ijjj31od6u2k8m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.Bentis.untitled",
+            "certificate_hash": "a3be2237c48ba9038bbebaa52c776a4905c39772"
+          }
+        },
         {
           "client_id": "595247630654-ofqj0olifn1if260vee24mtep3jf37hj.apps.googleusercontent.com",
           "client_type": 3
