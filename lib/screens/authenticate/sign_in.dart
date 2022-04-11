@@ -196,7 +196,7 @@ class _SignInState extends State<SignIn> {
                                       ),
                                     ),
                                     Positioned(
-                                      left: 90,
+                                      left: 94,
                                       top: 8,
                                       bottom: 8,
                                       child: Container(
@@ -328,15 +328,20 @@ class _SignInState extends State<SignIn> {
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.network('https://ouch-cdn2.icons8.com/n9XQxiCMz0_zpnfg9oldMbtSsG7X6NwZi_kLccbLOKw/rs:fit:392:392/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNDMv/MGE2N2YwYzMtMjQw/NC00MTFjLWE2MTct/ZDk5MTNiY2IzNGY0/LnN2Zw.png', fit: BoxFit.cover, width: 280, ),
-                    SizedBox(height: 50,),
                     FadeInDown(
                       delay: Duration(milliseconds: 150),
+                      child: Image.network(
+                        'https://ouch-cdn2.icons8.com/n9XQxiCMz0_zpnfg9oldMbtSsG7X6NwZi_kLccbLOKw/rs:fit:392:392/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNDMv/MGE2N2YwYzMtMjQw/NC00MTFjLWE2MTct/ZDk5MTNiY2IzNGY0/LnN2Zw.png', fit: BoxFit.cover, width: 280,
+                      )
+                    ),
+                    SizedBox(height: 50,),
+                    FadeInDown(
+                      delay: Duration(milliseconds: 300),
                       child: Text('VERIFICATION',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.grey.shade900),),
                     ),
                     FadeInDown(
-                      delay: Duration(milliseconds: 300),
+                      delay: Duration(milliseconds: 450),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20),
                         child: Text('Enter the code sent to: $phoneNumber',
@@ -346,7 +351,7 @@ class _SignInState extends State<SignIn> {
                     ),
                     SizedBox(height: 20,),
                     FadeInDown(
-                      delay: Duration(milliseconds: 450),
+                      delay: Duration(milliseconds: 600),
                       child: PinCodeTextField(
                         appContext: context,
                         pastedTextStyle: TextStyle(
@@ -363,7 +368,7 @@ class _SignInState extends State<SignIn> {
                     ),
                     SizedBox(height: 20,),
                     FadeInDown(
-                      delay: Duration(milliseconds: 450),
+                      delay: Duration(milliseconds: 750),
                       child: MaterialButton(
                         onPressed: () {
                           setState(() {
@@ -397,7 +402,7 @@ class _SignInState extends State<SignIn> {
                     ),
                     SizedBox(height: 15,),
                     FadeInDown(
-                      delay: Duration(milliseconds: 600),
+                      delay: Duration(milliseconds: 900),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
