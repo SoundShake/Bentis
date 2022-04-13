@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:untitled/%20services/auth.dart';
@@ -46,11 +47,14 @@ class _SignInState extends State<SignIn> {
 
   bool _isButtonLoading = false;
   bool wrongNumber = true;
+  bool userExists = false;
   bool showError = false;
 
+  //Form controllers
   @override
   void initState() {
-    if (_auth.currentUser != null) {
+    var currentUser = _auth.currentUser;
+    if (currentUser != null) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
@@ -196,7 +200,7 @@ class _SignInState extends State<SignIn> {
                                       ),
                                     ),
                                     Positioned(
-                                      left: 90,
+                                      left: 94,
                                       top: 8,
                                       bottom: 8,
                                       child: Container(
@@ -229,7 +233,7 @@ class _SignInState extends State<SignIn> {
                         FadeInDown(
                           delay: Duration(milliseconds: 750),
                           child: MaterialButton(
-                            onPressed: () {
+                            onPressed: () async {
                               if (wrongNumber) {
                                 setState(() {
                                   showError = true;
@@ -237,17 +241,24 @@ class _SignInState extends State<SignIn> {
                                 return;
                               }
 
+                              userExists = await isUserInDatabase();
+
                               setState(() {
-                                _isButtonLoading = true;
+                                _isButtonLoading = false;
                               });
 
-                              Future.delayed(Duration(milliseconds: 1500), () {
+                              if (userExists) {
                                 setState(() {
-                                  _isButtonLoading = false;
                                   isOTPScreen = true;
                                   isLoginScreen = false;
                                 });
-                              });
+                              }
+                              else {
+                                setState(() {
+                                  wrongNumber = true;
+                                  showError = true;
+                                });
+                              }
                             },
                             color: Colors.black,
                             shape: RoundedRectangleBorder(
@@ -311,117 +322,142 @@ class _SignInState extends State<SignIn> {
               setState(() {
                 isOTPScreen = false;
                 isLoginScreen = true;
+                phoneNumber = '';
               });
             },
           ),
         ),
         body: SingleChildScrollView(
-          child: Form(
-            key: _formKeyOTP,
-            child: Container(
-              padding: EdgeInsets.all(30),
-              width: double.infinity,
-              height: MediaQuery
-                  .of(context)
-                  .size
-                  .height,
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.network('https://ouch-cdn2.icons8.com/n9XQxiCMz0_zpnfg9oldMbtSsG7X6NwZi_kLccbLOKw/rs:fit:392:392/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNDMv/MGE2N2YwYzMtMjQw/NC00MTFjLWE2MTct/ZDk5MTNiY2IzNGY0/LnN2Zw.png', fit: BoxFit.cover, width: 280, ),
-                    SizedBox(height: 50,),
-                    FadeInDown(
-                      delay: Duration(milliseconds: 150),
-                      child: Text('VERIFICATION',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.grey.shade900),),
-                    ),
-                    FadeInDown(
-                      delay: Duration(milliseconds: 300),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20),
-                        child: Text('Enter the code sent to: $phoneNumber',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 14, color: Colors.grey.shade700),),
-                      ),
-                    ),
-                    SizedBox(height: 20,),
-                    FadeInDown(
-                      delay: Duration(milliseconds: 450),
-                      child: PinCodeTextField(
-                        appContext: context,
-                        pastedTextStyle: TextStyle(
-                          color: Colors.green.shade600,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        length: 6,
-                        keyboardType: TextInputType.number,
-                        cursorColor: Colors.black,
-                        onChanged: (String value) {
-
-                        },
-                      ),
-                    ),
-                    SizedBox(height: 20,),
-                    FadeInDown(
-                      delay: Duration(milliseconds: 450),
-                      child: MaterialButton(
-                        onPressed: () {
-                          setState(() {
-                            _isButtonLoading = true;
-                          });
-
-                          Future.delayed(Duration(milliseconds: 1500), () {
-                            setState(() {
-                              _isButtonLoading = false;
-                            });
-                          });
-                        },
-                        color: Colors.black,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)
-                        ),
-                        padding: EdgeInsets.symmetric(
-                            vertical: 15, horizontal: 30),
-                        child: _isButtonLoading ? Container(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            backgroundColor: Colors.white,
-                            color: Colors.black,
-                            strokeWidth: 2,
-                          ),
-                        ) :
-                        Text("Verify", style: TextStyle(
-                            color: Colors.white, fontSize: 16.0),),
-                      ),
-                    ),
-                    SizedBox(height: 15,),
-                    FadeInDown(
-                      delay: Duration(milliseconds: 600),
-                      child: Row(
+            child: Form(
+                key: _formKeyOTP,
+                child: Container(
+                    padding: EdgeInsets.all(30),
+                    width: double.infinity,
+                    height: MediaQuery
+                        .of(context)
+                        .size
+                        .height,
+                    child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('Didn\'t receive code?',
-                            style: TextStyle(color: Colors.grey.shade700),),
-                          SizedBox(width: 5,),
-                          InkWell(
-                            onTap: () {
-                              /// Cia reikia implementinti paspaudima RESEND OTP.
-                              print('User asked new OTP');
-                            },
-                            child: Text('Resend OTP', style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.w400),),
+                          FadeInDown(
+                              delay: Duration(milliseconds: 150),
+                              child: Image.network(
+                                'https://ouch-cdn2.icons8.com/n9XQxiCMz0_zpnfg9oldMbtSsG7X6NwZi_kLccbLOKw/rs:fit:392:392/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNDMv/MGE2N2YwYzMtMjQw/NC00MTFjLWE2MTct/ZDk5MTNiY2IzNGY0/LnN2Zw.png', fit: BoxFit.cover, width: 280,
+                              )
+                          ),
+                          SizedBox(height: 50,),
+                          FadeInDown(
+                            delay: Duration(milliseconds: 300),
+                            child: Text('VERIFICATION',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.grey.shade900),),
+                          ),
+                          FadeInDown(
+                            delay: Duration(milliseconds: 450),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20),
+                              child: Text('Enter the code sent to: $phoneNumber',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),),
+                            ),
+                          ),
+                          SizedBox(height: 20,),
+                          FadeInDown(
+                            delay: Duration(milliseconds: 600),
+                            child: PinCodeTextField(
+                              appContext: context,
+                              pastedTextStyle: TextStyle(
+                                color: Colors.green.shade600,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              length: 6,
+                              keyboardType: TextInputType.number,
+                              cursorColor: Colors.black,
+                              onChanged: (String value) {
+
+                              },
+                            ),
+                          ),
+                          SizedBox(height: 20,),
+                          FadeInDown(
+                            delay: Duration(milliseconds: 750),
+                            child: MaterialButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isButtonLoading = true;
+                                });
+
+                                Future.delayed(Duration(milliseconds: 1500), () {
+                                  setState(() {
+                                    _isButtonLoading = false;
+                                  });
+                                });
+                              },
+                              color: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 15, horizontal: 30),
+                              child: _isButtonLoading ? Container(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  backgroundColor: Colors.white,
+                                  color: Colors.black,
+                                  strokeWidth: 2,
+                                ),
+                              ) :
+                              Text("Verify", style: TextStyle(
+                                  color: Colors.white, fontSize: 16.0),),
+                            ),
+                          ),
+                          SizedBox(height: 15,),
+                          FadeInDown(
+                            delay: Duration(milliseconds: 900),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('Didn\'t receive code?',
+                                  style: TextStyle(color: Colors.grey.shade700),),
+                                SizedBox(width: 5,),
+                                InkWell(
+                                  onTap: () {
+                                    /// Cia reikia implementinti paspaudima RESEND OTP.
+                                    print('User asked new OTP');
+                                  },
+                                  child: Text('Resend OTP', style: TextStyle(
+                                      color: Colors.blue,
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.w400),),
+                                )
+                              ],
+                            ),
                           )
-                        ],
-                      ),
+                        ]
                     )
-                  ]
-              )
+                )
             )
-          )
         )
     );
+  }
+
+
+  Future<bool> isUserInDatabase() async {
+    setState(() {
+      _isButtonLoading = true;
+    });
+
+    var result =     await _firestore
+        .collection('users')
+        .where('phoneNumber', isEqualTo: phoneNumber)
+        .get();
+
+    if (result.docs.length > 0) {
+      return Future<bool>.value(true);
+    }
+
+    print('blogas numeris');
+    return Future<bool>.value(false);
   }
 }
