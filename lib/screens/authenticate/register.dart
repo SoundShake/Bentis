@@ -41,6 +41,7 @@ class _RegisterState extends State<Register> {
   bool wrongNumber = true;
   bool showError = false;
   bool _isButtonLoading = false;
+  bool userExists = false;
 
   @override
   Widget build(BuildContext context) {
@@ -228,7 +229,7 @@ class _RegisterState extends State<Register> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          (wrongNumber && showError) ? 'Number is invalid' : '',
+                          (wrongNumber && showError) ? 'Number is invalid or already in use' : '',
                           textAlign: TextAlign.left,
                           style: TextStyle(color: Colors.red, fontSize: 12),
                         ),
@@ -240,7 +241,7 @@ class _RegisterState extends State<Register> {
                     delay: Duration(milliseconds: 750),
                     child: MaterialButton(
                       minWidth: double.infinity,
-                      onPressed: () {
+                      onPressed: () async {
                         if (wrongNumber) {
                           setState(() {
                             showError = true;
@@ -251,17 +252,27 @@ class _RegisterState extends State<Register> {
                           return;
                         }
 
-                        setState(() {
-                          _isButtonLoading = true;
-                        });
+                        userExists = await isUserInDatabase();
 
-                        Future.delayed(Duration(milliseconds: 1500), () {
+                        if (!userExists) {
                           setState(() {
-                            _isButtonLoading = false;
-                            isOTPScreen = true;
-                            isRegisterScreen = false;
+                            _isButtonLoading = true;
                           });
-                        });
+
+                          Future.delayed(Duration(milliseconds: 1500), () {
+                            setState(() {
+                              _isButtonLoading = false;
+                              isOTPScreen = true;
+                              isRegisterScreen = false;
+                            });
+                          });
+                        }
+                        else {
+                          setState(() {
+                            wrongNumber = true;
+                            showError = true;
+                          });
+                        }
                       },
                       color: Colors.black,
                       shape: RoundedRectangleBorder(
@@ -435,5 +446,19 @@ class _RegisterState extends State<Register> {
             )
         )
     );
+  }
+
+  Future<bool> isUserInDatabase() async {
+    var result = await _firestore
+        .collection('users')
+        .where('phoneNumber', isEqualTo: phoneNumber)
+        .get();
+
+    if (result.docs.length > 0) {
+      return Future<bool>.value(true);
+    }
+
+    print('blogas numeris');
+    return Future<bool>.value(false);
   }
 }

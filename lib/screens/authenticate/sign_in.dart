@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:untitled/%20services/auth.dart';
@@ -242,18 +243,14 @@ class _SignInState extends State<SignIn> {
 
                               userExists = await isUserInDatabase();
 
+                              setState(() {
+                                _isButtonLoading = false;
+                              });
 
                               if (userExists) {
                                 setState(() {
-                                  _isButtonLoading = true;
-                                });
-
-                                Future.delayed(Duration(milliseconds: 1500), () {
-                                  setState(() {
-                                    _isButtonLoading = false;
-                                    isOTPScreen = true;
-                                    isLoginScreen = false;
-                                  });
+                                  isOTPScreen = true;
+                                  isLoginScreen = false;
                                 });
                               }
                               else {
@@ -325,6 +322,7 @@ class _SignInState extends State<SignIn> {
               setState(() {
                 isOTPScreen = false;
                 isLoginScreen = true;
+                phoneNumber = '';
               });
             },
           ),
@@ -446,6 +444,10 @@ class _SignInState extends State<SignIn> {
 
 
   Future<bool> isUserInDatabase() async {
+    setState(() {
+      _isButtonLoading = true;
+    });
+
     var result =     await _firestore
         .collection('users')
         .where('phoneNumber', isEqualTo: phoneNumber)
