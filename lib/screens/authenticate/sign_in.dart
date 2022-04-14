@@ -49,7 +49,7 @@ class _SignInState extends State<SignIn> {
   bool wrongNumber = true;
   bool userExists = false;
   bool showError = false;
-  bool isCodeWrong = false;
+  bool isWrongCode = false;
 
   //Form controllers
   @override
@@ -362,7 +362,27 @@ class _SignInState extends State<SignIn> {
                                 fontWeight: FontWeight.bold,
                               ),
                               length: 6,
-                              validator: (val) => val?.length == 6 ? null : "Enter 6 numbers please",
+                              validator: (val) {
+                                if (val?.length != 6) {
+                                  Future.delayed(Duration.zero, () async {
+                                    setState(() {
+                                      isWrongCode = false;
+                                    });
+                                  });
+
+                                  return "Enter 6 numbers please";
+                                } else if (isWrongCode) {
+                                  Future.delayed(Duration.zero, () async {
+                                    setState(() {
+                                      _isButtonLoading = false;
+                                    });
+                                  });
+
+                                  return "You've written incorrect OTP code";
+                                }
+
+                                return null;
+                              },
                               keyboardType: TextInputType.number,
                               cursorColor: Colors.black,
                               onChanged: (String value) {
@@ -469,7 +489,8 @@ class _SignInState extends State<SignIn> {
         verificationFailed: (FirebaseAuthException error) {
           setState(() {
             _isButtonLoading = false;
-            isCodeWrong = true;
+            showError = true;
+            wrongNumber = true;
           });
         },
         codeSent: (verificationId, [forceResendingToken]) {
@@ -493,6 +514,10 @@ class _SignInState extends State<SignIn> {
   }
 
   Future login() async {
+    setState(() {
+      _isButtonLoading = true;
+    });
+
     var attemptSignIn = _auth
         .signInWithCredential(
         PhoneAuthProvider.credential(
@@ -523,12 +548,8 @@ class _SignInState extends State<SignIn> {
         .catchError((error) => {
       setState(() {
         _isButtonLoading = false;
-        isResend = true;
+        isWrongCode = true;
       }),
-    });
-
-    setState(() {
-      _isButtonLoading = true;
     });
 
     try {
