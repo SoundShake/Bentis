@@ -19,13 +19,13 @@ class Register extends StatefulWidget {
   State<Register> createState() => _RegisterState();
 }
 
-final FirebaseAuth _auth = FirebaseAuth.instance;
-final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+FirebaseAuth _auth = FirebaseAuth.instance;
+FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 class _RegisterState extends State<Register> {
-  final _formKey = GlobalKey<FormState>();
-  final _formKeyOTP = GlobalKey<FormState>();
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  var _formKey = GlobalKey<FormState>();
+  var _formKeyOTP = GlobalKey<FormState>();
+  var _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String phoneNumber = 'numeris';
   String userFirstName = '';
@@ -454,11 +454,7 @@ class _RegisterState extends State<Register> {
         .where('phoneNumber', isEqualTo: phoneNumber)
         .get();
 
-    if (result.docs.length > 0) {
-      return Future<bool>.value(true);
-    }
-
-    print('blogas numeris');
-    return Future<bool>.value(false);
+    bool userExists = result.docs.length > 0;
+    return Future<bool>.value(userExists);
   }
 }
