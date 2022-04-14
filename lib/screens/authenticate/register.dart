@@ -430,9 +430,10 @@ class _RegisterState extends State<Register> {
                                   style: TextStyle(color: Colors.grey.shade700),),
                                 SizedBox(width: 5,),
                                 InkWell(
-                                  onTap: () {
-                                    /// Cia reikia implementinti paspaudima RESEND OTP.
-                                    print('User asked new OTP');
+                                  onTap: () async {
+                                    setState(() {
+
+                                    });
                                   },
                                   child: Text('Resend OTP', style: TextStyle(
                                       color: Colors.blue,

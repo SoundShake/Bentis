@@ -437,9 +437,10 @@ class _SignInState extends State<SignIn> {
                                   style: TextStyle(color: Colors.grey.shade700),),
                                 SizedBox(width: 5,),
                                 InkWell(
-                                  onTap: () {
-                                    /// Cia reikia implementinti paspaudima RESEND OTP.
+                                  onTap: () async {
                                     print('User asked new OTP');
+                                    await askForCode();
+                                    print('New code sent');
                                   },
                                   child: Text('Resend OTP', style: TextStyle(
                                       color: Colors.blue,
