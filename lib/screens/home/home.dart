@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled/%20services/auth.dart';
@@ -7,10 +8,12 @@ import 'package:untitled/main.dart';
 import 'package:untitled/models/bentis.dart';
 import 'package:untitled/screens/home/bentis_list.dart';
 
+import '../authenticate/sign_in.dart';
+
+final FirebaseAuth _auth = FirebaseAuth.instance;
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 class Home extends StatelessWidget {
-
-  final AuthService _auth = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +91,8 @@ class Home extends StatelessWidget {
                   icon: const Icon(Icons.person),
                   label: const Text('logout'),
                   onPressed: () async {
-                    await _auth.signOut();
+                    _signOut().then((value) => Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (BuildContext context) => SignIn())));
                   },
                 ),
                 TextButton.icon(
@@ -101,5 +105,9 @@ class Home extends StatelessWidget {
           body: const BentisList(),
         )
     );
+  }
+
+  Future<void> _signOut() async {
+    await _auth.signOut();
   }
 }

@@ -37,7 +37,7 @@ class _SignInState extends State<SignIn> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String phoneNumber = 'numeris';
-  final TextEditingController otpController = new TextEditingController();
+  String otpCode = '';
 
   var isLoading = false;
   var isResend = false;
@@ -49,6 +49,7 @@ class _SignInState extends State<SignIn> {
   bool wrongNumber = true;
   bool userExists = false;
   bool showError = false;
+  bool isWrongCode = false;
 
   //Form controllers
   @override
@@ -64,13 +65,6 @@ class _SignInState extends State<SignIn> {
       );
     }
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    // Clean up the controller when the Widget is disposed
-    otpController.dispose();
-    super.dispose();
   }
 
   @override
@@ -248,10 +242,7 @@ class _SignInState extends State<SignIn> {
                               });
 
                               if (userExists) {
-                                setState(() {
-                                  isOTPScreen = true;
-                                  isLoginScreen = false;
-                                });
+                                await askForCode();
                               }
                               else {
                                 setState(() {
@@ -371,10 +362,33 @@ class _SignInState extends State<SignIn> {
                                 fontWeight: FontWeight.bold,
                               ),
                               length: 6,
+                              validator: (val) {
+                                if (val?.length != 6) {
+                                  Future.delayed(Duration.zero, () async {
+                                    setState(() {
+                                      isWrongCode = false;
+                                    });
+                                  });
+
+                                  return "Enter 6 numbers please";
+                                } else if (isWrongCode) {
+                                  Future.delayed(Duration.zero, () async {
+                                    setState(() {
+                                      _isButtonLoading = false;
+                                    });
+                                  });
+
+                                  return "You've written incorrect OTP code";
+                                }
+
+                                return null;
+                              },
                               keyboardType: TextInputType.number,
                               cursorColor: Colors.black,
                               onChanged: (String value) {
-
+                                if (value.length == 6) {
+                                  otpCode = value;
+                                }
                               },
                             ),
                           ),
@@ -382,16 +396,15 @@ class _SignInState extends State<SignIn> {
                           FadeInDown(
                             delay: Duration(milliseconds: 750),
                             child: MaterialButton(
-                              onPressed: () {
-                                setState(() {
-                                  _isButtonLoading = true;
-                                });
+                              onPressed: () async {
+                                if(_formKeyOTP.currentState!.validate()) {
+                                  await login();
 
-                                Future.delayed(Duration(milliseconds: 1500), () {
                                   setState(() {
-                                    _isButtonLoading = false;
+                                    isResend = false;
+                                    _isButtonLoading = true;
                                   });
-                                });
+                                }
                               },
                               color: Colors.black,
                               shape: RoundedRectangleBorder(
@@ -453,11 +466,98 @@ class _SignInState extends State<SignIn> {
         .where('phoneNumber', isEqualTo: phoneNumber)
         .get();
 
-    if (result.docs.length > 0) {
-      return Future<bool>.value(true);
-    }
+    bool userExists = result.docs.length > 0;
+    return Future<bool>.value(userExists);
+  }
 
-    print('blogas numeris');
-    return Future<bool>.value(false);
+  Future askForCode() async {
+    setState(() {
+      _isButtonLoading = true;
+    });
+
+    var verifyPhoneNumber = _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (phoneAuthCredential) {
+          _auth.signInWithCredential(phoneAuthCredential).then((user) async => {
+            if (user != null) {
+             setState(() {
+               _isButtonLoading = false;
+              }),
+            }
+          });
+        },
+        verificationFailed: (FirebaseAuthException error) {
+          setState(() {
+            _isButtonLoading = false;
+            showError = true;
+            wrongNumber = true;
+          });
+        },
+        codeSent: (verificationId, [forceResendingToken]) {
+          setState(() {
+            isOTPScreen = true;
+            isLoginScreen = false;
+            _isButtonLoading = false;
+            verificationCode = verificationId;
+          });
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          setState(() {
+            _isButtonLoading = false;
+            verificationCode = verificationId;
+          });
+        },
+        timeout: Duration (seconds: 10),
+    );
+
+    await verifyPhoneNumber;
+  }
+
+  Future login() async {
+    setState(() {
+      _isButtonLoading = true;
+    });
+
+    var attemptSignIn = _auth
+        .signInWithCredential(
+        PhoneAuthProvider.credential(
+            verificationId:
+            verificationCode,
+            smsCode: otpCode,
+        ))
+        .then((user) async => {
+      //sign in was success
+      if (user != null)
+        {
+          //store registration details in firestore database
+          setState(() {
+            _isButtonLoading = false;
+            isResend = false;
+          }),
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext
+              context) =>
+                  Home(),
+            ),
+                (route) => false,
+          )
+        }
+    })
+        .catchError((error) => {
+      setState(() {
+        _isButtonLoading = false;
+        isWrongCode = true;
+      }),
+    });
+
+    try {
+      await attemptSignIn;
+    } catch (e) {
+      setState(() {
+        _isButtonLoading = false;
+      });
+    }
   }
 }
