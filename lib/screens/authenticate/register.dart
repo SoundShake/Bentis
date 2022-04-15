@@ -537,6 +537,17 @@ class _RegisterState extends State<Register> {
           showError = true;
           wrongNumber = true;
         });
+
+        Flushbar(
+          padding: EdgeInsets.all(10),
+          backgroundColor: Colors.red.shade900,
+
+          duration: Duration(seconds: 4),
+          dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+          forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+          title: 'Registration failed.',
+          message: 'Too many attempts. Try again later.',
+        ).show(context);
       },
       codeSent: (verificationId, [forceResendingToken]) {
         setState(() {

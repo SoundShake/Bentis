@@ -508,9 +508,18 @@ class _SignInState extends State<SignIn> {
         verificationFailed: (FirebaseAuthException error) {
           setState(() {
             _isButtonLoading = false;
-            showError = true;
-            wrongNumber = true;
           });
+
+          Flushbar(
+            padding: EdgeInsets.all(10),
+            backgroundColor: Colors.red.shade900,
+
+            duration: Duration(seconds: 4),
+            dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+            forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+            title: 'Login failed.',
+            message: 'Too many attempts. Try again later.',
+          ).show(context);
         },
         codeSent: (verificationId, [forceResendingToken]) {
           setState(() {
