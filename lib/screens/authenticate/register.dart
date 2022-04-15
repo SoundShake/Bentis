@@ -265,6 +265,7 @@ class _RegisterState extends State<Register> {
                         }
 
                         userExists = await isUserInDatabase();
+                        print('User exists:' + userExists.toString());
 
                         if (!userExists) {
                           String resendCode = "no";
@@ -291,7 +292,7 @@ class _RegisterState extends State<Register> {
                           strokeWidth: 2,
                         ),
                       ) :
-                      Text("Request OTP", style: TextStyle(color: Colors.white),),
+                      Text("Request verification code", style: TextStyle(color: Colors.white),),
                     ),
                   ),
                   SizedBox(height: 15,),
@@ -466,7 +467,7 @@ class _RegisterState extends State<Register> {
 
 
                                   },
-                                  child: Text('Resend OTP', style: TextStyle(
+                                  child: Text('Resend verification code', style: TextStyle(
                                       color: Colors.blue,
                                       fontSize: 14.0,
                                       fontWeight: FontWeight.w400),),
@@ -534,8 +535,6 @@ class _RegisterState extends State<Register> {
       verificationFailed: (FirebaseAuthException error) {
         setState(() {
           _isButtonLoading = false;
-          showError = true;
-          wrongNumber = true;
         });
 
         Flushbar(
@@ -545,8 +544,8 @@ class _RegisterState extends State<Register> {
           duration: Duration(seconds: 4),
           dismissDirection: FlushbarDismissDirection.HORIZONTAL,
           forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-          title: 'Registration failed.',
-          message: 'Too many attempts. Try again later.',
+          title: isResend == "yes" ? 'Resend failed.' : 'Request failed.',
+          message: isResend == "yes" ? 'Too many attempts to resend code. Try again later.' : 'Too many attempts. Try again later.',
         ).show(context);
       },
       codeSent: (verificationId, [forceResendingToken]) {
@@ -566,7 +565,7 @@ class _RegisterState extends State<Register> {
             duration: Duration(seconds: 4),
             dismissDirection: FlushbarDismissDirection.HORIZONTAL,
             forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-            message: 'One time password has been resent to your phone number',
+            message: 'Verification code has been resent to your phone number',
           ).show(context);
         }
       },

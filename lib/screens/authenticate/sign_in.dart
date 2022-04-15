@@ -455,7 +455,7 @@ class _SignInState extends State<SignIn> {
 
 
                                   },
-                                  child: Text('Resend OTP', style: TextStyle(
+                                  child: Text('Resend verification code', style: TextStyle(
                                       color: Colors.blue,
                                       fontSize: 14.0,
                                       fontWeight: FontWeight.w400),),
@@ -517,8 +517,8 @@ class _SignInState extends State<SignIn> {
             duration: Duration(seconds: 4),
             dismissDirection: FlushbarDismissDirection.HORIZONTAL,
             forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-            title: 'Login failed.',
-            message: 'Too many attempts. Try again later.',
+            title: isResend == "yes" ? 'Resend failed.' : 'Login failed.',
+            message:  isResend == "yes" ? 'Too many attempts to resend code. Try again later.' : 'Too many attempts to login. Try again later.',
           ).show(context);
         },
         codeSent: (verificationId, [forceResendingToken]) {
@@ -537,7 +537,7 @@ class _SignInState extends State<SignIn> {
               duration: Duration(seconds: 4),
               dismissDirection: FlushbarDismissDirection.HORIZONTAL,
               forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-              message: 'One time password has been resent to your phone number',
+              message: 'Verification code has been resent to your phone number',
             ).show(context);
           }
         },
