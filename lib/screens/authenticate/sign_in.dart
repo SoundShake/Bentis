@@ -9,6 +9,8 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:untitled/%20services/auth.dart';
 import 'package:untitled/screens/authenticate/register.dart';
 import 'package:untitled/screens/home/home.dart';
+import 'package:another_flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar_helper.dart';
 import 'package:untitled/shared/Loading.dart';
 import 'package:untitled/shared/constants.dart';
 // For Overrided MaterialPageRout to tCustomPageRoute. To stop animation
@@ -242,7 +244,8 @@ class _SignInState extends State<SignIn> {
                               });
 
                               if (userExists) {
-                                await askForCode();
+                                String resendCode = "no";
+                                await askForCode(resendCode);
                               }
                               else {
                                 setState(() {
@@ -438,9 +441,14 @@ class _SignInState extends State<SignIn> {
                                 SizedBox(width: 5,),
                                 InkWell(
                                   onTap: () async {
-                                    print('User asked new OTP');
-                                    await askForCode();
-                                    print('New code sent');
+                                    setState(() {
+                                      isResend = true;
+                                    });
+
+                                    String resendCode = "yes";
+                                    await askForCode(resendCode);
+
+
                                   },
                                   child: Text('Resend OTP', style: TextStyle(
                                       color: Colors.blue,
@@ -473,10 +481,12 @@ class _SignInState extends State<SignIn> {
     return Future<bool>.value(userExists);
   }
 
-  Future askForCode() async {
-    setState(() {
-      _isButtonLoading = true;
-    });
+  Future askForCode(String isResend) async {
+    if (isResend != "yes") {
+      setState(() {
+        _isButtonLoading = true;
+      });
+    }
 
     var verifyPhoneNumber = _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
@@ -502,6 +512,18 @@ class _SignInState extends State<SignIn> {
             isLoginScreen = false;
             _isButtonLoading = false;
             verificationCode = verificationId;
+
+            if (isResend == "yes") {
+              Flushbar(
+                padding: EdgeInsets.all(10),
+                backgroundColor: Colors.green.shade900,
+
+                duration: Duration(seconds: 4),
+                dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+                forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+                message: 'One time password has been resent to your phone number',
+              ).show(context);
+            }
           });
         },
         codeAutoRetrievalTimeout: (String verificationId) {
