@@ -348,11 +348,13 @@ class _RegisterState extends State<Register> {
                         children: [
                           FadeInDown(
                               delay: Duration(milliseconds: 150),
-                              child: Image.network(
-                                'https://ouch-cdn2.icons8.com/n9XQxiCMz0_zpnfg9oldMbtSsG7X6NwZi_kLccbLOKw/rs:fit:392:392/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNDMv/MGE2N2YwYzMtMjQw/NC00MTFjLWE2MTct/ZDk5MTNiY2IzNGY0/LnN2Zw.png', fit: BoxFit.cover, width: 280,
-                              )
+                              child: Image(
+                                image: AssetImage("assets/images/phoneAuth.png"),
+                                fit: BoxFit.cover,
+                                width: 220,
+                              ),
                           ),
-                          SizedBox(height: 50,),
+                          SizedBox(height: 15,),
                           FadeInDown(
                             delay: Duration(milliseconds: 300),
                             child: Text('VERIFICATION',
@@ -367,7 +369,7 @@ class _RegisterState extends State<Register> {
                                 style: TextStyle(fontSize: 14, color: Colors.grey.shade700),),
                             ),
                           ),
-                          SizedBox(height: 20,),
+                          SizedBox(height: 10,),
                           FadeInDown(
                             delay: Duration(milliseconds: 600),
                             child: PinCodeTextField(
@@ -384,7 +386,7 @@ class _RegisterState extends State<Register> {
                               },
                             ),
                           ),
-                          SizedBox(height: 20,),
+                          SizedBox(height: 15,),
                           FadeInDown(
                             delay: Duration(milliseconds: 750),
                             child: MaterialButton(
@@ -428,9 +430,10 @@ class _RegisterState extends State<Register> {
                                   style: TextStyle(color: Colors.grey.shade700),),
                                 SizedBox(width: 5,),
                                 InkWell(
-                                  onTap: () {
-                                    /// Cia reikia implementinti paspaudima RESEND OTP.
-                                    print('User asked new OTP');
+                                  onTap: () async {
+                                    setState(() {
+
+                                    });
                                   },
                                   child: Text('Resend OTP', style: TextStyle(
                                       color: Colors.blue,

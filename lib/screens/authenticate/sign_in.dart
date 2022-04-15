@@ -9,6 +9,8 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:untitled/%20services/auth.dart';
 import 'package:untitled/screens/authenticate/register.dart';
 import 'package:untitled/screens/home/home.dart';
+import 'package:another_flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar_helper.dart';
 import 'package:untitled/shared/Loading.dart';
 import 'package:untitled/shared/constants.dart';
 // For Overrided MaterialPageRout to tCustomPageRoute. To stop animation
@@ -116,7 +118,7 @@ class _SignInState extends State<SignIn> {
                                   fontSize: 14, color: Colors.grey.shade700),),
                           ),
                         ),
-                        SizedBox(height: 25,),
+                        SizedBox(height: 10,),
                         FadeInDown(
                             delay: Duration(milliseconds: 600),
                             child: Container(
@@ -223,7 +225,7 @@ class _SignInState extends State<SignIn> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 15,),
+                        SizedBox(height: 10,),
                         FadeInDown(
                           delay: Duration(milliseconds: 750),
                           child: MaterialButton(
@@ -242,7 +244,8 @@ class _SignInState extends State<SignIn> {
                               });
 
                               if (userExists) {
-                                await askForCode();
+                                String resendCode = "no";
+                                await askForCode(resendCode);
                               }
                               else {
                                 setState(() {
@@ -333,11 +336,13 @@ class _SignInState extends State<SignIn> {
                         children: [
                           FadeInDown(
                               delay: Duration(milliseconds: 150),
-                              child: Image.network(
-                                'https://ouch-cdn2.icons8.com/n9XQxiCMz0_zpnfg9oldMbtSsG7X6NwZi_kLccbLOKw/rs:fit:392:392/czM6Ly9pY29uczgu/b3VjaC1wcm9kLmFz/c2V0cy9zdmcvNDMv/MGE2N2YwYzMtMjQw/NC00MTFjLWE2MTct/ZDk5MTNiY2IzNGY0/LnN2Zw.png', fit: BoxFit.cover, width: 280,
-                              )
+                              child: Image(
+                                image: AssetImage("assets/images/phoneAuth.png"),
+                                fit: BoxFit.cover,
+                                width: 220,
+                              ),
                           ),
-                          SizedBox(height: 50,),
+                          SizedBox(height: 15,),
                           FadeInDown(
                             delay: Duration(milliseconds: 300),
                             child: Text('VERIFICATION',
@@ -352,7 +357,7 @@ class _SignInState extends State<SignIn> {
                                 style: TextStyle(fontSize: 14, color: Colors.grey.shade700),),
                             ),
                           ),
-                          SizedBox(height: 20,),
+                          SizedBox(height: 10,),
                           FadeInDown(
                             delay: Duration(milliseconds: 600),
                             child: PinCodeTextField(
@@ -392,7 +397,7 @@ class _SignInState extends State<SignIn> {
                               },
                             ),
                           ),
-                          SizedBox(height: 20,),
+                          SizedBox(height: 15,),
                           FadeInDown(
                             delay: Duration(milliseconds: 750),
                             child: MaterialButton(
@@ -435,9 +440,15 @@ class _SignInState extends State<SignIn> {
                                   style: TextStyle(color: Colors.grey.shade700),),
                                 SizedBox(width: 5,),
                                 InkWell(
-                                  onTap: () {
-                                    /// Cia reikia implementinti paspaudima RESEND OTP.
-                                    print('User asked new OTP');
+                                  onTap: () async {
+                                    setState(() {
+                                      isResend = true;
+                                    });
+
+                                    String resendCode = "yes";
+                                    await askForCode(resendCode);
+
+
                                   },
                                   child: Text('Resend OTP', style: TextStyle(
                                       color: Colors.blue,
@@ -470,10 +481,12 @@ class _SignInState extends State<SignIn> {
     return Future<bool>.value(userExists);
   }
 
-  Future askForCode() async {
-    setState(() {
-      _isButtonLoading = true;
-    });
+  Future askForCode(String isResend) async {
+    if (isResend != "yes") {
+      setState(() {
+        _isButtonLoading = true;
+      });
+    }
 
     var verifyPhoneNumber = _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
@@ -499,6 +512,18 @@ class _SignInState extends State<SignIn> {
             isLoginScreen = false;
             _isButtonLoading = false;
             verificationCode = verificationId;
+
+            if (isResend == "yes") {
+              Flushbar(
+                padding: EdgeInsets.all(10),
+                backgroundColor: Colors.green.shade900,
+
+                duration: Duration(seconds: 4),
+                dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+                forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+                message: 'One time password has been resent to your phone number',
+              ).show(context);
+            }
           });
         },
         codeAutoRetrievalTimeout: (String verificationId) {
