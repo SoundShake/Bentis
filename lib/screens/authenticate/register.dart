@@ -1,3 +1,4 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -28,9 +29,9 @@ class _RegisterState extends State<Register> {
   var _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String phoneNumber = 'numeris';
+  String otpCode = '';
   String userFirstName = '';
   String userLastName = '';
-  String userOTPInput = '';
 
   var isLoading = false;
   var isResend = false;
@@ -42,6 +43,7 @@ class _RegisterState extends State<Register> {
   bool showError = false;
   bool _isButtonLoading = false;
   bool userExists = false;
+  bool isWrongCode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +107,11 @@ class _RegisterState extends State<Register> {
                         ),
                       ),
                       validator: (val) => val!.isEmpty && val.length < 2 ? "Name is too short or empty" : null,
+                      onChanged: (val) {
+                        setState(() {
+                          userFirstName = val;
+                        });
+                      },
                     ),
                   ),
                   SizedBox(height: 15,),
@@ -113,6 +120,11 @@ class _RegisterState extends State<Register> {
                     child: TextFormField(
                       validator: (val) => val!.isEmpty && val.length < 2 ? "Surname is too short or empty" : null,
                       cursorColor: Colors.black,
+                      onChanged: (val) {
+                        setState(() {
+                          userLastName = val;
+                        });
+                      },
                       decoration: InputDecoration(
                         contentPadding: EdgeInsets.all(0.0),
                         labelText: 'Surname',
@@ -255,17 +267,8 @@ class _RegisterState extends State<Register> {
                         userExists = await isUserInDatabase();
 
                         if (!userExists) {
-                          setState(() {
-                            _isButtonLoading = true;
-                          });
-
-                          Future.delayed(Duration(milliseconds: 1500), () {
-                            setState(() {
-                              _isButtonLoading = false;
-                              isOTPScreen = true;
-                              isRegisterScreen = false;
-                            });
-                          });
+                          String resendCode = "no";
+                          await askForCode(resendCode);
                         }
                         else {
                           setState(() {
@@ -328,7 +331,8 @@ class _RegisterState extends State<Register> {
             onPressed: () {
               setState(() {
                 isOTPScreen = false;
-                isRegisterScreen = true;
+                isResend = true;
+                phoneNumber = '';
               });
             },
           ),
@@ -347,12 +351,12 @@ class _RegisterState extends State<Register> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           FadeInDown(
-                              delay: Duration(milliseconds: 150),
-                              child: Image(
-                                image: AssetImage("assets/images/phoneAuth.png"),
-                                fit: BoxFit.cover,
-                                width: 220,
-                              ),
+                            delay: Duration(milliseconds: 150),
+                            child: Image(
+                              image: AssetImage("assets/images/phoneAuth.png"),
+                              fit: BoxFit.cover,
+                              width: 220,
+                            ),
                           ),
                           SizedBox(height: 15,),
                           FadeInDown(
@@ -379,10 +383,33 @@ class _RegisterState extends State<Register> {
                                 fontWeight: FontWeight.bold,
                               ),
                               length: 6,
+                              validator: (val) {
+                                if (val?.length != 6) {
+                                  Future.delayed(Duration.zero, () async {
+                                    setState(() {
+                                      isWrongCode = false;
+                                    });
+                                  });
+
+                                  return "Enter 6 numbers please";
+                                } else if (isWrongCode) {
+                                  Future.delayed(Duration.zero, () async {
+                                    setState(() {
+                                      _isButtonLoading = false;
+                                    });
+                                  });
+
+                                  return "You've written incorrect OTP code";
+                                }
+
+                                return null;
+                              },
                               keyboardType: TextInputType.number,
                               cursorColor: Colors.black,
                               onChanged: (String value) {
-
+                                if (value.length == 6) {
+                                  otpCode = value;
+                                }
                               },
                             ),
                           ),
@@ -390,16 +417,15 @@ class _RegisterState extends State<Register> {
                           FadeInDown(
                             delay: Duration(milliseconds: 750),
                             child: MaterialButton(
-                              onPressed: () {
-                                setState(() {
-                                  _isButtonLoading = true;
-                                });
+                              onPressed: () async {
+                                if(_formKeyOTP.currentState!.validate()) {
+                                  await registerUser();
 
-                                Future.delayed(Duration(milliseconds: 1500), () {
                                   setState(() {
-                                    _isButtonLoading = false;
+                                    isResend = false;
+                                    _isButtonLoading = true;
                                   });
-                                });
+                                }
                               },
                               color: Colors.black,
                               shape: RoundedRectangleBorder(
@@ -432,8 +458,13 @@ class _RegisterState extends State<Register> {
                                 InkWell(
                                   onTap: () async {
                                     setState(() {
-
+                                      isResend = true;
                                     });
+
+                                    String resendCode = "yes";
+                                    await askForCode(resendCode);
+
+
                                   },
                                   child: Text('Resend OTP', style: TextStyle(
                                       color: Colors.blue,
@@ -459,5 +490,140 @@ class _RegisterState extends State<Register> {
 
     bool userExists = result.docs.length > 0;
     return Future<bool>.value(userExists);
+  }
+
+  Future askForCode(String isResend) async {
+    if (isResend != "yes") {
+      setState(() {
+        _isButtonLoading = true;
+      });
+    }
+
+    var verifyPhoneNumber = _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (phoneAuthCredential) {
+        _auth.signInWithCredential(phoneAuthCredential).then((user) async => {
+          if (user != null) {
+            setState(() {
+              _isButtonLoading = false;
+            }),
+
+            await _firestore
+            .collection('users')
+            .doc(_auth.currentUser!.uid)
+            .set({
+              'name' : userFirstName,
+              'phoneNumber' : phoneNumber,
+              'surname' : userLastName,
+            }),
+
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext
+                context) =>
+                    Home(),
+              ),
+                  (route) => false,
+            )
+          }
+        }).catchError((error) => {
+          debugPrint('Error saving user to db.' + error.toString())
+        });
+      },
+      verificationFailed: (FirebaseAuthException error) {
+        setState(() {
+          _isButtonLoading = false;
+          showError = true;
+          wrongNumber = true;
+        });
+      },
+      codeSent: (verificationId, [forceResendingToken]) {
+        setState(() {
+          print('Code was sent');
+          isOTPScreen = true;
+          isRegisterScreen = false;
+          _isButtonLoading = false;
+          verificationCode = verificationId;
+        });
+
+        if (isResend == "yes") {
+          Flushbar(
+            padding: EdgeInsets.all(10),
+            backgroundColor: Colors.green.shade900,
+
+            duration: Duration(seconds: 4),
+            dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+            forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+            message: 'One time password has been resent to your phone number',
+          ).show(context);
+        }
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        setState(() {
+          _isButtonLoading = false;
+          verificationCode = verificationId;
+        });
+      },
+      timeout: Duration (seconds: 10),
+    );
+
+    await verifyPhoneNumber;
+  }
+
+  Future registerUser() async {
+    setState(() {
+      _isButtonLoading = true;
+    });
+
+    var attemptUserRegistration = _auth
+    .signInWithCredential(PhoneAuthProvider.credential(
+        verificationId: verificationCode,
+        smsCode: otpCode))
+    .then((user) async => {
+      if (user != null) {
+        await _firestore
+        .collection('users')
+        .doc(_auth.currentUser!.uid)
+        .set({
+          'name' : userFirstName,
+          'phoneNumber' : phoneNumber,
+          'surname' : userLastName,
+        }, SetOptions(merge: true))
+        .then((value) => {
+          setState(() {
+            _isButtonLoading = false;
+          })
+        }),
+
+        setState(() {
+          _isButtonLoading = false;
+          isResend = false;
+        }),
+
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext
+            context) =>
+                Home(),
+          ),
+              (route) => false,
+        )
+      }
+    }).catchError((error) => {
+      setState(() {
+        _isButtonLoading = false;
+        isWrongCode = true;
+      })
+    });
+
+    try {
+      await attemptUserRegistration;
+    } catch (e) {
+      setState(() {
+        _isButtonLoading = false;
+      });
+    }
   }
 }
