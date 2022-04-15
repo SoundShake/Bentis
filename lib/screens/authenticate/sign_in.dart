@@ -53,7 +53,6 @@ class _SignInState extends State<SignIn> {
   bool showError = false;
   bool isWrongCode = false;
 
-  //Form controllers
   @override
   void initState() {
     var currentUser = _auth.currentUser;
@@ -238,12 +237,18 @@ class _SignInState extends State<SignIn> {
                               }
 
                               userExists = await isUserInDatabase();
+                              print('User exists:' + userExists.toString());
 
                               setState(() {
                                 _isButtonLoading = false;
                               });
 
                               if (userExists) {
+                                setState(() {
+                                  wrongNumber = false;
+                                  showError = false;
+                                });
+
                                 String resendCode = "no";
                                 await askForCode(resendCode);
                               }
@@ -477,6 +482,7 @@ class _SignInState extends State<SignIn> {
         .where('phoneNumber', isEqualTo: phoneNumber)
         .get();
 
+    print('If number is found result == 1, result = ' + result.docs.length.toString());
     bool userExists = result.docs.length > 0;
     return Future<bool>.value(userExists);
   }
@@ -512,19 +518,19 @@ class _SignInState extends State<SignIn> {
             isLoginScreen = false;
             _isButtonLoading = false;
             verificationCode = verificationId;
-
-            if (isResend == "yes") {
-              Flushbar(
-                padding: EdgeInsets.all(10),
-                backgroundColor: Colors.green.shade900,
-
-                duration: Duration(seconds: 4),
-                dismissDirection: FlushbarDismissDirection.HORIZONTAL,
-                forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-                message: 'One time password has been resent to your phone number',
-              ).show(context);
-            }
           });
+
+          if (isResend == "yes") {
+            Flushbar(
+              padding: EdgeInsets.all(10),
+              backgroundColor: Colors.green.shade900,
+
+              duration: Duration(seconds: 4),
+              dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+              forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+              message: 'One time password has been resent to your phone number',
+            ).show(context);
+          }
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           setState(() {
