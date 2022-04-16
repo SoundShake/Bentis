@@ -54,21 +54,6 @@ class _SignInState extends State<SignIn> {
   bool isWrongCode = false;
 
   @override
-  void initState() {
-    var currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => Home(),
-        ),
-            (route) => false,
-      );
-    }
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return isOTPScreen ? returnOTPScreen() : returnLoginScreen();
   }

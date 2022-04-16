@@ -2,6 +2,7 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:untitled/%20services/auth.dart';
@@ -79,6 +80,7 @@ class _RegisterState extends State<Register> {
                     delay: Duration(milliseconds: 300),
                     child: TextFormField(
                       cursorColor: Colors.black,
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u00c0-\u017e]"))],
                       decoration: InputDecoration(
                         contentPadding: EdgeInsets.all(0.0),
                         labelText: 'Name',
@@ -120,6 +122,7 @@ class _RegisterState extends State<Register> {
                     child: TextFormField(
                       validator: (val) => val!.isEmpty && val.length < 2 ? "Surname is too short or empty" : null,
                       cursorColor: Colors.black,
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[a-zA-Z\u00c0-\u017e]"))],
                       onChanged: (val) {
                         setState(() {
                           userLastName = val;
