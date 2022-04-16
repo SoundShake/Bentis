@@ -12,12 +12,19 @@ import '../authenticate/sign_in.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+String phoneNumber = '';
+String name = '';
+String surname = '';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
+  const Home({Key? key}) : super(key: key);
+  @override
+  State<Home> createState() => _HomeState();
+}
 
+class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
-
     void _showSettingsPanel(BuildContext context) {
       showModalBottomSheet(context: context, builder: (context) {
         return Container(
@@ -66,7 +73,7 @@ class Home extends StatelessWidget {
     }
 
     return StreamProvider<List<Bentis1>>.value(
-        value: DatabaseService(uid:"").Bentis,
+        value: DatabaseService(uid:'').Bentis,
         initialData: [],
         child: Scaffold(
           backgroundColor: Colors.brown[50],
@@ -97,7 +104,7 @@ class Home extends StatelessWidget {
                 ),
                 TextButton.icon(
                   icon:const Icon(Icons.settings),
-                  label: const Text('settings'),
+                  label: Text('settings'),
                   onPressed: () => _showSettingsPanel(context),
                 )
               ]
