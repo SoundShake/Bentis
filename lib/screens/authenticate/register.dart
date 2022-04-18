@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:untitled/%20services/auth.dart';
+import 'package:untitled/main.dart';
+import 'package:untitled/models/cities.dart';
 import 'package:untitled/screens/authenticate/sign_in.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:untitled/screens/home/home.dart';
@@ -14,7 +16,8 @@ import 'package:animate_do/animate_do.dart';
 import 'package:untitled/shared/constants.dart';
 
 class Register extends StatefulWidget {
-  const Register({Key? key}) : super(key: key);
+  final List<String>? cities; //pass to main
+  const Register(this.cities, {Key? key}) : super(key: key);
 
 
   @override
@@ -308,7 +311,7 @@ class _RegisterState extends State<Register> {
                         SizedBox(width: 5,),
                         InkWell(
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => SignIn()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => SignIn(widget.cities)));
                           },
                           child: Text('Login', style: TextStyle(color: Colors.blue, fontSize: 14.0, fontWeight: FontWeight.w400),),
                         )
@@ -526,7 +529,7 @@ class _RegisterState extends State<Register> {
               MaterialPageRoute(
                 builder: (BuildContext
                 context) =>
-                    Home(),
+                    Home(widget.cities),
               ),
                   (route) => false,
             )
@@ -619,7 +622,7 @@ class _RegisterState extends State<Register> {
           MaterialPageRoute(
             builder: (BuildContext
             context) =>
-                Home(),
+                Home(widget.cities),
           ),
               (route) => false,
         )

@@ -7,7 +7,8 @@ import 'package:untitled/%20services/database.dart';
 import 'package:untitled/main.dart';
 import 'package:untitled/models/bentis.dart';
 import 'package:untitled/screens/home/bentis_list.dart';
-
+import 'package:untitled/screens/post/creation.dart';
+import 'package:untitled/models/cities.dart';
 import '../authenticate/sign_in.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -17,7 +18,8 @@ String name = '';
 String surname = '';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+  final List<String>? cities;
+  const Home(this.cities, {Key? key}) : super(key: key);
   @override
   State<Home> createState() => _HomeState();
 }
@@ -34,44 +36,6 @@ class _HomeState extends State<Home> {
       });
     };
 
-    Widget _showPostCreation(BuildContext context){
-      return AlertDialog(
-        title: const Text('Post Creation'),
-        content: Column(
-          children: const <Widget>[
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-              child: TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Departure',
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-              child: TextField(
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Destination'
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'Cancel'),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'Cancel'),
-            child: const Text('OK'),
-          ),
-        ],
-      );
-    }
-
     return StreamProvider<List<Bentis1>>.value(
         value: DatabaseService(uid:'').Bentis,
         initialData: [],
@@ -79,13 +43,13 @@ class _HomeState extends State<Home> {
           backgroundColor: Colors.brown[50],
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
-            backgroundColor: Colors.blue,
+            backgroundColor: Colors.black,
             foregroundColor: Colors.white,
             onPressed:()=>
             {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) => _showPostCreation(context),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CreatePost(widget.cities)),
               ),
             },
           ),
@@ -99,7 +63,7 @@ class _HomeState extends State<Home> {
                   label: const Text('logout'),
                   onPressed: () async {
                     _signOut().then((value) => Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (BuildContext context) => SignIn())));
+                        MaterialPageRoute(builder: (BuildContext context) => SignIn(widget.cities))));
                   },
                 ),
                 TextButton.icon(
