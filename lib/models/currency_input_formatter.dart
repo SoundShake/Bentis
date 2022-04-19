@@ -13,7 +13,7 @@ class CurrencyInputFormatter extends TextInputFormatter{
       return oldValue;
     }
     double value=double.parse(newValue.text);
-    final formatter=new NumberFormat("##,##", 'lt');
+    final formatter=new NumberFormat("##.##", 'lt');
     String newText=formatter.format(value);
     return newValue.copyWith(
       text: newText,

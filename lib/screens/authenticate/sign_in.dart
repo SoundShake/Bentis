@@ -13,8 +13,6 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:another_flushbar/flushbar_helper.dart';
 import 'package:untitled/shared/Loading.dart';
 import 'package:untitled/shared/constants.dart';
-
-import '../../models/cities.dart';
 // For Overrided MaterialPageRout to tCustomPageRoute. To stop animation
 class CustomPageRoute extends MaterialPageRoute {
   CustomPageRoute({builder}) : super(builder: builder);

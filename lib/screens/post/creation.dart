@@ -1,10 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:untitled/models/currency_input_formatter.dart';
-import 'package:untitled/screens/home/home.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../models/cities.dart';
 
@@ -18,7 +18,6 @@ class CreatePost extends StatefulWidget {
 
 }
 class _CreatePostState extends State<CreatePost> {
-  final _formKey=GlobalKey<FormState>();
   String departure='';
   String arrival='';
   int seats=0;
@@ -26,7 +25,13 @@ class _CreatePostState extends State<CreatePost> {
   TimeOfDay? time;
   List<String>? cities;
   double price=0;
-  final _controler=TextEditingController();
+
+  bool wrongDeparture=false;
+  bool wrongArrival=false;
+  bool wrongSeatCount=false;
+  bool wrongDate=false;
+  bool wrongTime=false;
+  bool wrongPrice=false;
 
   @override
   void initState() {
@@ -93,11 +98,16 @@ class _CreatePostState extends State<CreatePost> {
                 ),
                 TextField(
                   keyboardType: TextInputType.number,
+                  maxLength: 2,
+                  decoration: InputDecoration(
+                    counter: Container(),
+                  ),
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.digitsOnly,
                   ],
                   onChanged: (String value){
                     seats=int.parse(value);
+                    validateSeats();
                   },
                 ),
                 const SizedBox(height: 15),
@@ -112,7 +122,7 @@ class _CreatePostState extends State<CreatePost> {
                     backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
                     minimumSize: MaterialStateProperty.all(Size.fromHeight(40)),
                   ),
-                  onPressed: () => pickDate(context),
+                  onPressed: () => pickDate(context)
                 ),
                 const SizedBox(height: 15),
                 ElevatedButton(
@@ -139,12 +149,20 @@ class _CreatePostState extends State<CreatePost> {
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(suffixText: "€"),
                   inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.allow(RegExp('[0-9.]')),
                     CurrencyInputFormatter(maxDigits: 5),
-                    FilteringTextInputFormatter.allow(RegExp('[0-9,]')),
                   ],
                   onChanged: (String value){
-                    price=double.parse(value);
+                    validatePrice(value);
                   },
+                ),
+                Text(
+                  (showError())
+                      ? getErrorMessage()
+                      : '',
+                  style: const TextStyle(
+                    color: Colors.red,
+                  ),
                 ),
                 const Expanded(child: SizedBox(height: 15),),
                 IntrinsicHeight(
@@ -177,7 +195,12 @@ class _CreatePostState extends State<CreatePost> {
                               foregroundColor: MaterialStateProperty.all(Colors.black),
                               minimumSize: MaterialStateProperty.all(Size.fromHeight(40)),
                             ),
-                            onPressed: null,
+                            onPressed: (){
+                              if(verify()){
+                                Navigator.pop(context);
+                                submit(context);
+                              }
+                            }
                           )
                       ),
                     ],
@@ -266,5 +289,193 @@ class _CreatePostState extends State<CreatePost> {
     else {
       return 'Select Time';
     }
+  }
+
+  String getErrorMessage(){
+    String message='Incorrect data in fields:';
+    if(wrongDeparture){
+      message+=" Departure;";
+    }
+    if(wrongArrival){
+      message+=" Arrival;";
+    }
+    if(wrongSeatCount){
+      message+=" Seat count;";
+    }
+    if(wrongDate){
+      message+=" Date;";
+    }
+    if(wrongTime){
+      message+=" Time;";
+    }
+    if(wrongPrice){
+      message+=" Price;";
+    }
+    return message;
+  }
+
+  bool validateDeparture(){
+    if(departure!='' || departure!=arrival){
+      setState(() {
+        wrongDeparture=false;
+      });
+      return true;
+    }
+    else{
+      setState(() {
+        wrongDeparture=true;
+      });
+      return false;
+    }
+  }
+  bool validateArrival(){
+    if(arrival!='' || departure!=arrival){
+      setState(() {
+        wrongArrival=false;
+      });
+      return true;
+    }
+    else{
+      setState(() {
+        wrongArrival=true;
+      });
+      return false;
+    }
+  }
+  bool validateSeats(){
+    if(seats>0){
+      setState(() {
+        wrongSeatCount=false;
+      });
+      return true;
+    }
+    else{
+      setState(() {
+        wrongSeatCount=true;
+      });
+      return false;
+    }
+  }
+  bool validateDate(){
+    if(date!=null){
+      setState(() {
+        wrongDate=false;
+      });
+      return true;
+    }
+    else{
+      setState(() {
+        wrongDate=true;
+      });
+      return false;
+    }
+  }
+  bool validateTime(){
+    bool valid=true;
+    if(time!=null){
+      TimeOfDay now=time as TimeOfDay;
+      if(date!=null){
+        DateTime selected=date as DateTime;
+        if(DateTime.now().month==selected.month && DateTime.now().day==selected.day){
+          if(DateTime.now().hour<=now.hour && DateTime.now().minute<now.minute){
+            setState(() {
+              valid=true;
+            });
+          }
+          else{
+            setState(() {
+              valid=false;
+            });
+          }
+        }
+        else{
+          setState(() {
+            valid=true;
+          });
+        }
+      }
+      else{
+        setState(() {
+          valid=true;
+        });
+      }
+    }
+    else{
+      setState(() {
+        valid=false;
+      });
+    }
+    setState(() {
+      wrongTime=!valid;
+    });
+    return valid;
+  }
+  bool validatePrice(String value){
+    double? parsedValue=double.tryParse(value);
+    if(parsedValue==null){
+      setState(() {
+        wrongPrice=true;
+      });
+      return false;
+    }
+    else{
+      setState(() {
+        price=parsedValue;
+        wrongPrice=false;
+      });
+      return true;
+    }
+  }
+  bool showError(){
+    if(wrongDeparture || wrongArrival || wrongSeatCount || wrongDate || wrongTime || wrongPrice){
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
+  bool verify(){
+    if(validateDeparture() && validateArrival() && validateSeats() && validateDate() && validateTime() && validatePrice(price.toString())){
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
+  bool submit(BuildContext context){
+    CollectionReference posts=FirebaseFirestore.instance.collection('posts');
+    var user=FirebaseAuth.instance.currentUser;
+    bool greatSuccess=false;
+    if(user!=null){
+      final ref=FirebaseFirestore.instance.collection("users").doc(user.uid);
+      DateTime postDate=date as DateTime;
+      TimeOfDay postTime=time as TimeOfDay;
+      int hour=postTime.hour;
+      int minute=postTime.minute;
+      setState(() {
+        postDate=postDate.add(Duration(hours: hour, minutes: minute));
+      });
+      posts.add({
+        'user': ref,
+        'departure': departure,
+        'destination': arrival,
+        'seats': seats,
+        'date': postDate,
+        'price': price,
+      })
+          .then((value) => {
+        print("post added"),
+        setState(() {
+          greatSuccess=true;
+        }),
+      })
+          .catchError((error) => {
+        print("Failed to add post: $error"),
+        setState(() {
+          greatSuccess=false;
+        }),
+      });
+    }
+    return greatSuccess;
   }
 }
