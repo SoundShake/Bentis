@@ -26,7 +26,8 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 class SignIn extends StatefulWidget {
-  const SignIn({Key? key}) : super(key: key);
+  final List<String>? cities;
+  const SignIn(this.cities, {Key? key}) : super(key: key);
 
 
   @override
@@ -275,7 +276,7 @@ class _SignInState extends State<SignIn> {
                               InkWell(
                                 onTap: () {
                                   Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) => Register()));
+                                      builder: (context) => Register(widget.cities)));
                                 },
                                 child: Text('Register', style: TextStyle(
                                     color: Colors.blue,
@@ -564,7 +565,7 @@ class _SignInState extends State<SignIn> {
             MaterialPageRoute(
               builder: (BuildContext
               context) =>
-                  Home(),
+                  Home(widget.cities),
             ),
                 (route) => false,
           )
