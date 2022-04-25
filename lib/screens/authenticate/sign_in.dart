@@ -533,7 +533,7 @@ class _SignInState extends State<SignIn> {
             verificationCode = verificationId;
           });
         },
-        timeout: Duration (seconds: 10),
+        timeout: Duration (seconds: 20),
     );
 
     await verifyPhoneNumber;
