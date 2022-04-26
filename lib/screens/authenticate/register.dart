@@ -628,10 +628,12 @@ class _RegisterState extends State<Register> {
         )
       }
     }).catchError((error) => {
-      setState(() {
-        _isButtonLoading = false;
-        isWrongCode = true;
-      })
+      if (_auth.currentUser == null) {
+        setState(() {
+          _isButtonLoading = false;
+          isWrongCode = true;
+        })
+      }
     });
 
     try {
