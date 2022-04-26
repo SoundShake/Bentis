@@ -236,7 +236,7 @@ class _SignInState extends State<SignIn> {
                                 });
 
                                 String resendCode = "no";
-                                await askForCode(resendCode);
+                                loginWithPhone(resendCode);
                               }
                               else {
                                 setState(() {
@@ -308,6 +308,7 @@ class _SignInState extends State<SignIn> {
                 isOTPScreen = false;
                 isLoginScreen = true;
                 phoneNumber = '';
+                _isButtonLoading = false;
               });
             },
           ),
@@ -326,12 +327,12 @@ class _SignInState extends State<SignIn> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           FadeInDown(
-                              delay: Duration(milliseconds: 150),
-                              child: Image(
-                                image: AssetImage("assets/images/phoneAuth.png"),
-                                fit: BoxFit.cover,
-                                width: 220,
-                              ),
+                            delay: Duration(milliseconds: 150),
+                            child: Image(
+                              image: AssetImage("assets/images/phoneAuth.png"),
+                              fit: BoxFit.cover,
+                              width: 220,
+                            ),
                           ),
                           SizedBox(height: 15,),
                           FadeInDown(
@@ -394,7 +395,7 @@ class _SignInState extends State<SignIn> {
                             child: MaterialButton(
                               onPressed: () async {
                                 if(_formKeyOTP.currentState!.validate()) {
-                                  await login();
+                                  verifyOTP();
 
                                   setState(() {
                                     isResend = false;
@@ -437,7 +438,7 @@ class _SignInState extends State<SignIn> {
                                     });
 
                                     String resendCode = "yes";
-                                    await askForCode(resendCode);
+                                    loginWithPhone(resendCode);
 
 
                                   },
@@ -473,93 +474,17 @@ class _SignInState extends State<SignIn> {
     return Future<bool>.value(userExists);
   }
 
-  Future askForCode(String isResend) async {
+  void loginWithPhone(String isResend) async {
     if (isResend != "yes") {
       setState(() {
         _isButtonLoading = true;
       });
     }
 
-    var verifyPhoneNumber = _auth.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationCompleted: (phoneAuthCredential) {
-          _auth.signInWithCredential(phoneAuthCredential).then((user) async => {
-            if (user != null) {
-             setState(() {
-               _isButtonLoading = false;
-              }),
-            }
-          });
-        },
-        verificationFailed: (FirebaseAuthException error) {
-          setState(() {
-            _isButtonLoading = false;
-          });
-
-          Flushbar(
-            padding: EdgeInsets.all(10),
-            backgroundColor: Colors.red.shade900,
-
-            duration: Duration(seconds: 4),
-            dismissDirection: FlushbarDismissDirection.HORIZONTAL,
-            forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-            title: isResend == "yes" ? 'Resend failed.' : 'Login failed.',
-            message:  isResend == "yes" ? 'Too many attempts to resend code. Try again later.' : 'Too many attempts to login. Try again later.',
-          ).show(context);
-        },
-        codeSent: (verificationId, [forceResendingToken]) {
-          setState(() {
-            isOTPScreen = true;
-            isLoginScreen = false;
-            _isButtonLoading = false;
-            verificationCode = verificationId;
-          });
-
-          if (isResend == "yes") {
-            Flushbar(
-              padding: EdgeInsets.all(10),
-              backgroundColor: Colors.green.shade900,
-
-              duration: Duration(seconds: 4),
-              dismissDirection: FlushbarDismissDirection.HORIZONTAL,
-              forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-              message: 'Verification code has been resent to your phone number',
-            ).show(context);
-          }
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          setState(() {
-            _isButtonLoading = false;
-            verificationCode = verificationId;
-          });
-        },
-        timeout: Duration (seconds: 20),
-    );
-
-    await verifyPhoneNumber;
-  }
-
-  Future login() async {
-    setState(() {
-      _isButtonLoading = true;
-    });
-
-    var attemptSignIn = _auth
-        .signInWithCredential(
-        PhoneAuthProvider.credential(
-            verificationId:
-            verificationCode,
-            smsCode: otpCode,
-        ))
-        .then((user) async => {
-      //sign in was success
-      if (user != null)
-        {
-          //store registration details in firestore database
-          setState(() {
-            _isButtonLoading = false;
-            isResend = false;
-          }),
+    _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        await _auth.signInWithCredential(credential).then((value){
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
@@ -568,22 +493,78 @@ class _SignInState extends State<SignIn> {
                   Home(widget.cities),
             ),
                 (route) => false,
-          )
-        }
-    })
-        .catchError((error) => {
-      setState(() {
-        _isButtonLoading = false;
-        isWrongCode = true;
-      }),
-    });
+          );
+          print("You are logged in successfully");
+        });
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        setState(() {
+          _isButtonLoading = false;
+        });
 
-    try {
-      await attemptSignIn;
-    } catch (e) {
-      setState(() {
-        _isButtonLoading = false;
-      });
-    }
+        Flushbar(
+          padding: EdgeInsets.all(10),
+          backgroundColor: Colors.red.shade900,
+
+          duration: Duration(seconds: 4),
+          dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+          forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+          title: isResend == "yes" ? 'Resend failed.' : 'Login failed.',
+          message:  isResend == "yes" ? 'Too many attempts to resend code. Try again later.' : 'Too many attempts to login. Try again later.',
+        ).show(context);
+        print(e.message);
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        setState(() {
+          verificationCode = verificationId;
+          _isButtonLoading = false;
+          isOTPScreen = true;
+          isLoginScreen = false;
+        });
+
+        if (isResend == "yes") {
+          Flushbar(
+            padding: EdgeInsets.all(10),
+            backgroundColor: Colors.green.shade900,
+
+            duration: Duration(seconds: 4),
+            dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+            forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+            message: 'Verification code has been resent to your phone number',
+          ).show(context);
+        }
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        setState(() {
+          _isButtonLoading = false;
+        });
+      },
+    );
+  }
+
+  void verifyOTP() async {
+
+    PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: verificationCode, smsCode: otpCode);
+
+    await _auth.signInWithCredential(credential).then((value){
+      print("You are logged in successfully");
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext
+          context) =>
+              Home(widget.cities),
+        ),
+            (route) => false,
+      );
+    }).catchError((onError) {
+      if (_auth.currentUser == null) {
+        setState(() {
+          _isButtonLoading = false;
+          isWrongCode = true;
+        });
+      }
+    });
   }
 }
