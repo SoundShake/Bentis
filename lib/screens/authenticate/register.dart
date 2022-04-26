@@ -516,9 +516,9 @@ class _RegisterState extends State<Register> {
             }),
 
             await _firestore
-            .collection('users')
-            .doc(_auth.currentUser!.uid)
-            .set({
+                .collection('users')
+                .doc(_auth.currentUser!.uid)
+                .set({
               'name' : userFirstName,
               'phoneNumber' : phoneNumber,
               'surname' : userLastName,
@@ -593,20 +593,20 @@ class _RegisterState extends State<Register> {
     });
 
     var attemptUserRegistration = _auth
-    .signInWithCredential(PhoneAuthProvider.credential(
+        .signInWithCredential(PhoneAuthProvider.credential(
         verificationId: verificationCode,
         smsCode: otpCode))
-    .then((user) async => {
+        .then((user) async => {
       if (user != null) {
         await _firestore
-        .collection('users')
-        .doc(_auth.currentUser!.uid)
-        .set({
+            .collection('users')
+            .doc(_auth.currentUser!.uid)
+            .set({
           'name' : userFirstName,
           'phoneNumber' : phoneNumber,
           'surname' : userLastName,
         }, SetOptions(merge: true))
-        .then((value) => {
+            .then((value) => {
           setState(() {
             _isButtonLoading = false;
           })
