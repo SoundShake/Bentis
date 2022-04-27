@@ -377,7 +377,7 @@ class _CreatePostState extends State<CreatePost> {
       if(date!=null){
         DateTime selected=date as DateTime;
         if(DateTime.now().month==selected.month && DateTime.now().day==selected.day){
-          if(DateTime.now().hour<=now.hour && DateTime.now().minute<now.minute){
+          if(DateTime.now().hour==now.hour && DateTime.now().minute<now.minute || DateTime.now().hour<now.hour){
             setState(() {
               valid=true;
             });
