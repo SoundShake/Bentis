@@ -129,7 +129,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                       ElevatedButton.icon(
                           icon:  Icon(LineAwesomeIcons.user_shield),
                           label: Text('Privacy'),
-                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15)),
+                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15), primary: Colors.black),
                           onPressed:()=>
                           {
                             Navigator.push(
@@ -142,7 +142,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                       ElevatedButton.icon(
                           icon: const Icon(LineAwesomeIcons.history),
                           label: const Text('Purchase History'),
-                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15)),
+                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15), primary: Colors.black),
                           onPressed:()=>
                           {
                             Navigator.push(
@@ -156,7 +156,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                       ElevatedButton.icon(
                           icon: const Icon(LineAwesomeIcons.question_circle),
                           label: const Text('Help & Support'),
-                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15)),
+                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15), primary: Colors.black),
                           onPressed:()=>
                           {
                             Navigator.push(
@@ -170,7 +170,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                       ElevatedButton.icon(
                           icon: const Icon(LineAwesomeIcons.cog),
                           label: const Text('Settings'),
-                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15)),
+                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15), primary: Colors.black),
                           onPressed:()=>
                           {
                             Navigator.push(
@@ -183,7 +183,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                       ElevatedButton.icon(
                           icon: const Icon(LineAwesomeIcons.user_plus),
                           label: const Text('Invite a Friend'),
-                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15)),
+                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15), primary: Colors.black),
                           onPressed:()=>
                           {
                             Navigator.push(
@@ -196,7 +196,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                       ElevatedButton.icon(
                           icon: const Icon(LineAwesomeIcons.alternate_sign_out),
                           label: const Text('Logout'),
-                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15)),
+                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15), primary: Colors.black),
                           onPressed: () async {
                             _signOut().then((value) => Navigator.pushReplacement(context,
                               MaterialPageRoute(builder: (BuildContext context) => SignIn(widget.cities))));
