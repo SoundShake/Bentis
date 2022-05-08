@@ -32,14 +32,11 @@ class _ProfileScreen extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: const Size(414,896));
+
     var profileInfo = Expanded(
       child: Column(
         children: <Widget>[
-
-
           Container(
-
-
             height: kSpacingUnit.w * 10,
             width: kSpacingUnit.w * 10,
             margin: EdgeInsets.only(top: kSpacingUnit.w * 3),
@@ -108,9 +105,21 @@ class _ProfileScreen extends State<ProfileScreen> {
     return Builder(
       builder: (context) {
         return Scaffold(
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(28),
+            child: AppBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+          ),
           body: Column(
             children: <Widget>[
-              SizedBox(height: kSpacingUnit.w * 5),
               header,
               Expanded(
                 child: Column(
