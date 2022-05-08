@@ -6,6 +6,7 @@ import 'package:untitled/%20services/auth.dart';
 import 'package:untitled/%20services/database.dart';
 import 'package:untitled/main.dart';
 import 'package:untitled/models/bentis.dart';
+import 'package:untitled/screens/home/Profile.dart';
 import 'package:untitled/screens/home/bentis_list.dart';
 import 'package:untitled/screens/post/creation.dart';
 import 'package:untitled/models/cities.dart';
@@ -31,7 +32,17 @@ class _HomeState extends State<Home> {
       showModalBottomSheet(context: context, builder: (context) {
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
-          child: const Text('bottom sheet'),
+          child: TextButton.icon(
+            icon: const Icon(Icons.person),
+            label: const Text('Profile'),
+            onPressed:()=>
+            {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen(widget.cities)),
+              ),
+            },
+          ),
         );
       });
     };
