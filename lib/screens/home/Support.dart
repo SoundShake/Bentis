@@ -7,7 +7,20 @@ class Support extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+      )
 
     );
   }
