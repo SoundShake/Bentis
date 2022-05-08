@@ -35,7 +35,11 @@ class _ProfileScreen extends State<ProfileScreen> {
     var profileInfo = Expanded(
       child: Column(
         children: <Widget>[
+
+
           Container(
+
+
             height: kSpacingUnit.w * 10,
             width: kSpacingUnit.w * 10,
             margin: EdgeInsets.only(top: kSpacingUnit.w * 3),
@@ -184,13 +188,10 @@ class _ProfileScreen extends State<ProfileScreen> {
                           icon: const Icon(LineAwesomeIcons.alternate_sign_out),
                           label: const Text('Logout'),
                           style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15)),
-                          onPressed:()=>
-                          {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => SignIn(widget.cities)),
-                            )
-                          }
+                          onPressed: () async {
+                            _signOut().then((value) => Navigator.pushReplacement(context,
+                              MaterialPageRoute(builder: (BuildContext context) => SignIn(widget.cities))));
+                        },
                       ),
 
                     ]
@@ -202,6 +203,11 @@ class _ProfileScreen extends State<ProfileScreen> {
       },
     );
   }
+
+  Future<void> _signOut() async {
+    await _auth.signOut();
+  }
+
   void GetInfo() async {
     await _firestore.collection("users").doc(_auth.currentUser?.uid).get().then((event) {
       setState(() {
