@@ -33,11 +33,8 @@ class _HomeState extends State<Home> {
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
           child: TextButton.icon(
-            icon: const Icon(Icons.person,color: Colors.black),
-
-            label: const Text('Profile',style: TextStyle(
-              color: Colors.black,//for text color
-            ),),
+            icon: const Icon(Icons.person),
+            label: const Text('Profile'),
             onPressed:()=>
             {
               Navigator.push(
