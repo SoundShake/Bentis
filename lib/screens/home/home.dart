@@ -28,6 +28,25 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
+    void _showSettingsPanel(BuildContext context) {
+      showModalBottomSheet(context: context, builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
+          child: TextButton.icon(
+            icon: const Icon(Icons.person),
+            label: const Text('Profile'),
+            onPressed:()=>
+            {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen(widget.cities)),
+              ),
+            },
+          ),
+        );
+      });
+    };
+
     return StreamProvider<List<Bentis1>>.value(
         value: DatabaseService(uid:'').Bentis,
         initialData: [],
@@ -51,14 +70,17 @@ class _HomeState extends State<Home> {
               elevation:0.0,
               actions: <Widget>[
                 TextButton.icon(
-                  icon:const Icon(Icons.person),
-                  label: Text('Profile'),
-                  onPressed:()=> {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ProfileScreen(widget.cities)),
-                    ),
+                  icon: const Icon(Icons.person),
+                  label: const Text('logout'),
+                  onPressed: () async {
+                    _signOut().then((value) => Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (BuildContext context) => SignIn(widget.cities))));
                   },
+                ),
+                TextButton.icon(
+                  icon:const Icon(Icons.settings),
+                  label: Text('settings'),
+                  onPressed: () => _showSettingsPanel(context),
                 )
               ]
           ),

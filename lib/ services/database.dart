@@ -10,12 +10,13 @@ class DatabaseService
   // collection reference
   final CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
 
-  Future updateUserData(String name, String surname,String phoneNumber) async
+  Future updateUserData(String name, String surname,String phoneNumber,String imageUrl) async
   {
     return await usersCollection.doc(uid).set({
       'name':name,
       'surname':surname,
       'phoneNumber':phoneNumber,
+      'ImageUrl': imageUrl,
     });
   }
   //Bentis list from snapshot
@@ -26,6 +27,7 @@ class DatabaseService
         name: doc1.get('name') ?? '',
         surname: doc1.get('surname') ?? '',
         phoneNumber: doc1.get('phoneNumber') ?? '',
+        imageUrl: doc1.get('imageUrl') ?? '',
       );
     }).toList();
   }

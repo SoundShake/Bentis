@@ -1,14 +1,18 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:untitled/screens/authenticate/sign_in.dart';
+import '../../ services/storage_service.dart';
 import 'Support.dart';
 import '../../shared/constants.dart';
-import 'Trips.dart';
-import 'Setting.dart';
 
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -24,15 +28,19 @@ class _ProfileScreen extends State<ProfileScreen> {
   String phoneNumber = '';
   String name = '';
   String surname = '';
+  String imageUrl ='';
 
   @override
   void initState() {
     super.initState();
     GetInfo();
-
+    if(imageUrl=='')imageUrl = 'https://firebasestorage.googleapis.com/v0/b/bentis-c851a.appspot.com/o/Avatars%2Favatar.png?alt=media&token=f748925a-d96b-476d-9422-64a15646fb35';
   }
   @override
   Widget build(BuildContext context) {
+
+    final Storage storage = Storage();
+
     ScreenUtil.init(context, designSize: const Size(414,896));
 
     var profileInfo = Expanded(
@@ -46,15 +54,15 @@ class _ProfileScreen extends State<ProfileScreen> {
               children: <Widget>[
                 CircleAvatar(
                   radius: kSpacingUnit.w * 5,
-                  backgroundImage: const AssetImage('assets/images/avatar.png'),
+                  backgroundImage:  NetworkImage(imageUrl),
                 ),
                 Align(
                   alignment: Alignment.bottomRight,
                   child: Container(
                     height: kSpacingUnit.w * 2.5,
                     width: kSpacingUnit.w * 2.5,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondary,
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -62,10 +70,24 @@ class _ProfileScreen extends State<ProfileScreen> {
                       widthFactor: kSpacingUnit.w * 1.5,
                       child: IconButton(
                           icon: const Icon(LineAwesomeIcons.pen),
-                          color: kDarkPrimaryColor,
+                          color: Colors.white,
                           iconSize: ScreenUtil().setSp(kSpacingUnit.w * 1.5),
-                          onPressed: ()  {
+                          onPressed: () async {
+                                final results = await FilePicker.platform.pickFiles(
+                                  allowMultiple: false,
+                                  type: FileType.custom,
+                                  allowedExtensions: ['png', 'jpg'],
+                                );
+                                if(results == null)
+                                  {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No file selected.'),));
+                                    return;
+                                  }
+                                final path = results.files.single.path!;
+                                final fileName = results.files.single.name;
 
+                                storage.uploadFile(path,fileName);
+                                storage.downloadURL(fileName);
                           }
 
                       ),
@@ -199,6 +221,7 @@ class _ProfileScreen extends State<ProfileScreen> {
         name = event.data()!['name'];
         surname = event.data()!['surname'];
         phoneNumber = event.data()!['phoneNumber'];
+        imageUrl = event.data()!['imageUrl'];
       });
     });
   }
