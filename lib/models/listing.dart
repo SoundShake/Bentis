@@ -3,7 +3,7 @@ import 'dart:ffi';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Listing {
-  final String? id;
+  final String id;
   final String user;
   final int seats;
   final Double price;

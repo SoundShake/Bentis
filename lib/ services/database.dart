@@ -12,6 +12,8 @@ class DatabaseService {
   // collection reference
   final CollectionReference usersCollection = FirebaseFirestore.instance
       .collection('users');
+  final CollectionReference postsCollection = FirebaseFirestore.instance
+      .collection('posts');
 
   Future updateUserData(String name, String surname, String phoneNumber) async
   {

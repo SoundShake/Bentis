@@ -12,10 +12,9 @@ updateListing(Listing listingData) async {
 
 Future<void> deleteListing(String documentId) async {
   await _db.collection("posts").doc(documentId).delete();
-
 }
 
-Future<List<Listing>> retrieveListing() async {
+Future<List<dynamic>> retrieveListing() async {
   QuerySnapshot<Map<String, dynamic>> snapshot =
   await _db.collection("posts").get();
   return snapshot.docs
