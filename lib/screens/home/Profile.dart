@@ -36,7 +36,9 @@ class _ProfileScreen extends State<ProfileScreen> {
   void initState() {
     super.initState();
     GetInfo();
-    if(imageUrl=='')imageUrl = 'https://firebasestorage.googleapis.com/v0/b/bentis-c851a.appspot.com/o/Avatars%2Favatar.png?alt=media&token=f748925a-d96b-476d-9422-64a15646fb35';
+    if(imageUrl== '') {
+      imageUrl = 'https://firebasestorage.googleapis.com/v0/b/bentis-c851a.appspot.com/o/Avatars%2Favatar.png?alt=media&token=f748925a-d96b-476d-9422-64a15646fb35';
+    }
   }
   @override
   Widget build(BuildContext context) {

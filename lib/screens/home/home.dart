@@ -70,17 +70,14 @@ class _HomeState extends State<Home> {
               elevation:0.0,
               actions: <Widget>[
                 TextButton.icon(
-                  icon: const Icon(Icons.person),
-                  label: const Text('logout'),
-                  onPressed: () async {
-                    _signOut().then((value) => Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (BuildContext context) => SignIn(widget.cities))));
-                  },
-                ),
-                TextButton.icon(
                   icon:const Icon(Icons.settings),
-                  label: Text('settings'),
-                  onPressed: () => _showSettingsPanel(context),
+                  label: Text('Profile'),
+                  onPressed: () => {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ProfileScreen(widget.cities)),
+                    ),
+                  },
                 )
               ]
           ),
