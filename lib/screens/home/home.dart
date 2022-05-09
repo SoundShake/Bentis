@@ -34,6 +34,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
+
     Future<void> _initRetrieval() async {
       Future<Map<String, dynamic>> futureListing =
           (await retrieveListing()) as Future<Map<String, dynamic>>;
@@ -69,6 +70,7 @@ class _HomeState extends State<Home> {
 
     ;
 
+
     return StreamProvider<List<Bentis1>>.value(
         value:
             DatabaseService(uid: FirebaseAuth.instance.currentUser.toString())
@@ -90,18 +92,18 @@ class _HomeState extends State<Home> {
           ),
           appBar: AppBar(
               title: const Text('Bentis'),
-              backgroundColor: Colors.brown[400],
-              elevation: 0.0,
+
+              backgroundColor: Colors.black,
+              elevation:0.0,
               actions: <Widget>[
                 TextButton.icon(
-                  icon: const Icon(Icons.person),
-                  label: const Text('logout'),
-                  onPressed: () async {
-                    _signOut().then((value) => Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                                SignIn(widget.cities))));
+                  icon:const Icon(Icons.settings),
+                  label: Text('Profile'),
+                  onPressed: () => {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ProfileScreen(widget.cities)),
+                    ),
                   },
                 ),
                 TextButton.icon(
