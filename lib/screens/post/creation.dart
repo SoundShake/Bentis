@@ -3,10 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/services.dart';
-import 'package:untitled/models/currency_input_formatter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-import '../../models/cities.dart';
 
 class CreatePost extends StatefulWidget {
   final List<String>? cities;
@@ -148,9 +145,32 @@ class _CreatePostState extends State<CreatePost> {
                 TextField(
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(suffixText: "€"),
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.allow(RegExp('[0-9.]')),
-                    CurrencyInputFormatter(maxDigits: 5),
+                  maxLength: 5,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp("[0-9]([.][\d]?)?")),
+                    TextInputFormatter.withFunction((oldValue, newValue){
+                      try{
+                        final text =newValue.text;
+                        if(text.isNotEmpty){
+                          double price=double.parse(text);
+                          if(price<100){
+                            if(!price.toString().contains('.') || price.toString().contains('.') && price.toString().split('.')[1].length<=2){
+                              return newValue;
+                            }
+                            else{
+                              return oldValue;
+                            }
+                          }
+                          else{
+                            return oldValue;
+                          }
+                        }
+                        else{return newValue;}
+                      }
+                      catch (e){
+                        return oldValue;
+                      }
+                    }),
                   ],
                   onChanged: (String value){
                     validatePrice(value);
