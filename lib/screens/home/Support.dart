@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -57,20 +58,19 @@ class Support extends StatelessWidget {
                 ],
               ),
 
+              MaterialButton(
+                onPressed: () {
 
-          OutlinedButton(
-            onPressed: () {},
-            style: ButtonStyle(
-
-              shape: MaterialStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-
-                  )
+                },
+                color: Colors.black,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)
+                ),
+                padding: EdgeInsets.symmetric(
+                    vertical: 15, horizontal: 30),
+                child: Text("Submit", style: TextStyle(
+                    color: Colors.white, fontSize: 16.0),),
               ),
-            ),
-            child: const Text("Submit"),
-          )
             ]
           )
             )

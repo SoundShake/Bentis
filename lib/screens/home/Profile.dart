@@ -11,8 +11,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:untitled/screens/authenticate/sign_in.dart';
 import '../../ services/storage_service.dart';
+import 'Setting.dart';
 import 'Support.dart';
 import '../../shared/constants.dart';
+import 'Trips.dart';
 
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 final FirebaseAuth _auth = FirebaseAuth.instance;
