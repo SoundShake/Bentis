@@ -7,6 +7,8 @@ import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:untitled/screens/authenticate/sign_in.dart';
 import 'Support.dart';
 import '../../shared/constants.dart';
+import 'Trips.dart';
+import 'Setting.dart';
 
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -127,28 +129,15 @@ class _ProfileScreen extends State<ProfileScreen> {
 
                       SizedBox(height: 15),
                       ElevatedButton.icon(
-                          icon:  Icon(LineAwesomeIcons.user_shield),
-                          label: Text('Privacy'),
-                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15), primary: Colors.black),
-                          onPressed:()=>
-                          {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => Support()),
-                            )
-                          }
-                      ),
-                      SizedBox(height: 15),
-                      ElevatedButton.icon(
                           icon: const Icon(LineAwesomeIcons.history),
-                          label: const Text('Purchase History'),
+                          label: const Text('Trips'),
                           style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15), primary: Colors.black),
                           onPressed:()=>
                           {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => Support()),
+                                  builder: (context) => Trips()),
                             )
                           }
                       ),
@@ -175,20 +164,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                           {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => Support()),
-                            )
-                          }
-                      ),
-                      SizedBox(height: 15),
-                      ElevatedButton.icon(
-                          icon: const Icon(LineAwesomeIcons.user_plus),
-                          label: const Text('Invite a Friend'),
-                          style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15), primary: Colors.black),
-                          onPressed:()=>
-                          {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => Support()),
+                              MaterialPageRoute(builder: (context) => Setting()),
                             )
                           }
                       ),

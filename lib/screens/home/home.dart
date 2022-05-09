@@ -47,7 +47,7 @@ class _HomeState extends State<Home> {
           ),
           appBar: AppBar(
               title: const Text('Bentis'),
-              backgroundColor: Colors.brown[400],
+              backgroundColor: Colors.black,
               elevation:0.0,
               actions: <Widget>[
                 TextButton.icon(
