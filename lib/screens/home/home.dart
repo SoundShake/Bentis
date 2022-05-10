@@ -15,6 +15,7 @@ import 'package:untitled/models/cities.dart';
 import '../../models/listing.dart';
 import '../../notifier/Listing_notifier.dart';
 import '../authenticate/sign_in.dart';
+import '../post/view.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -110,7 +111,18 @@ class _HomeState extends State<Home> {
                   icon: const Icon(Icons.settings),
                   label: Text('settings'),
                   onPressed: () => _showSettingsPanel(context),
-                )
+                ),
+                TextButton.icon(
+                  icon:const Icon(Icons.settings),
+                  label: Text('test'),
+                  onPressed: () async {
+                    var post=await _firestore.collection("posts").doc("Go7LDySTquGaYyOj2wSO").get();
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (BuildContext context) => ViewPost(post))
+                    );
+                  },
+                ),
               ]),
           body: RefreshIndicator(
             onRefresh: _refresh,
