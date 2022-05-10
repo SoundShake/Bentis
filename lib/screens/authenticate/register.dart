@@ -605,6 +605,7 @@ class _RegisterState extends State<Register> {
           'name' : userFirstName,
           'phoneNumber' : phoneNumber,
           'surname' : userLastName,
+          'imageUrl' : '',
         }, SetOptions(merge: true))
             .then((value) => {
           setState(() {
