@@ -466,8 +466,8 @@ class _CreatePostState extends State<CreatePost> {
     CollectionReference posts=FirebaseFirestore.instance.collection('posts');
     var user=FirebaseAuth.instance.currentUser;
     bool greatSuccess=false;
+    List<String> passengers=List.empty();
     if(user!=null){
-      final ref=FirebaseFirestore.instance.collection("users").doc(user.uid);
       DateTime postDate=date as DateTime;
       TimeOfDay postTime=time as TimeOfDay;
       int hour=postTime.hour;
@@ -476,12 +476,13 @@ class _CreatePostState extends State<CreatePost> {
         postDate=postDate.add(Duration(hours: hour, minutes: minute));
       });
       posts.add({
-        'user': ref,
+        'user': user.uid,
         'departure': departure,
         'destination': arrival,
         'seats': seats,
         'date': postDate,
         'price': price,
+        'passengers': passengers,
       })
           .then((value) => {
         print("post added"),
