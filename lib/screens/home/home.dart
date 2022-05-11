@@ -15,6 +15,7 @@ import 'package:untitled/models/cities.dart';
 import '../../models/listing.dart';
 import '../../notifier/Listing_notifier.dart';
 import '../authenticate/sign_in.dart';
+import '../post/view.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -105,7 +106,6 @@ class _HomeState extends State<Home> {
                       MaterialPageRoute(builder: (context) => ProfileScreen(widget.cities)),
                     ),
                   },
-                )
               ]),
           body: RefreshIndicator(
             onRefresh: _refresh,
