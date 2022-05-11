@@ -106,6 +106,7 @@ class _HomeState extends State<Home> {
                       MaterialPageRoute(builder: (context) => ProfileScreen(widget.cities)),
                     ),
                   },
+            )
               ]),
           body: RefreshIndicator(
             onRefresh: _refresh,
@@ -137,7 +138,7 @@ class _HomeState extends State<Home> {
                               onTap: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => ProfileScreen(widget.cities)),
+                                  MaterialPageRoute(builder: (context) => ViewPost(document)),
                                 );
                               },
                               shape: RoundedRectangleBorder(
