@@ -1,9 +1,17 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+final FirebaseAuth _auth = FirebaseAuth.instance;
+List passengers = List.filled(5, 0, growable: true);
+String currentUserName = "";
+String postUserName = "";
+bool canJoinTheRide = false;
 
 class ViewPost extends StatefulWidget{
   DocumentSnapshot post;
@@ -24,6 +32,7 @@ class _ViewPostState extends State<ViewPost>{
   @override
   Widget build(BuildContext context){
     getData();
+    getName();
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -82,12 +91,33 @@ class _ViewPostState extends State<ViewPost>{
                     minimumSize: MaterialStateProperty.all(Size.fromHeight(40)),
                   ),
                   onPressed: () => {
-                    if(seats>0)
-                      {
+                    if (currentUserName == postUserName) {
+                      canJoinTheRide = false,
+                      Flushbar(
+                        padding: EdgeInsets.all(10),
+                        backgroundColor: Colors.red.shade900,
+
+                        duration: Duration(seconds: 3),
+                        dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+                        forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+                        title: 'Joining ride was denied.',
+                        message: 'Creator of the post can\'t join their own ride.',
+                      ).show(context),
+                    }
+                    else if(passengers.contains(_auth.currentUser?.uid)) {
+                      Flushbar(
+                        padding: EdgeInsets.all(10),
+                        backgroundColor: Colors.red.shade900,
+
+                        duration: Duration(seconds: 3),
+                        dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+                        forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+                        title: 'Joining ride was denied.',
+                        message: 'User already has joined the ride.',
+                      ).show(context),
+                    }
+                    else if(seats>0){
                         joinPost(),
-                      }
-                    else{
-                      null,
                     }
                   },
               ),
@@ -105,13 +135,23 @@ class _ViewPostState extends State<ViewPost>{
     seats=widget.post.get("seats");
     driverRef=FirebaseFirestore.instance.collection("users").doc(widget.post.get("user")).get();
   }
+
+  void getName() async {
+    await _firestore.collection("users").doc(_auth.currentUser?.uid).get().then((event) {
+      String firstName = event.data()!['name'];
+      String lastName = event.data()!['surname'];
+      currentUserName = firstName + " " + lastName;
+      passengers = widget.post.get("passengers");
+    });
+  }
+
   Future<void> joinPost() async{
     var user=FirebaseAuth.instance.currentUser;
     if(seats>0 && user!=null){
       setState(() {
         seats-=1;
       });
-      List passengers=widget.post.get("passengers");
+      passengers=widget.post.get("passengers");
       passengers.add(user.uid);
       widget.post.reference.update({
         "seats": seats,
@@ -132,6 +172,7 @@ class driverDisplay extends StatelessWidget{
       future: snapshot(),
       builder: (context, AsyncSnapshot<String> snapshot){
         if(snapshot.hasData){
+          postUserName = snapshot.data as String;
           return Text("Driver: "+(snapshot.data as String));
         }
         else{
