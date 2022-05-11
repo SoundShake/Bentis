@@ -131,9 +131,8 @@ class _HomeState extends State<Home> {
                       }
 
                       return ListView(
-                        children: snapshot.data!.docs.map((document) {
+                        children: snapshot.data!.docs.where((element) => Timestamp.now().compareTo(element['date']) < 0).map((document) {
                           return Container(
-
                             child: ListTile(
                               onTap: () {
                                 Navigator.push(
