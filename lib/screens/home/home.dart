@@ -105,11 +105,6 @@ class _HomeState extends State<Home> {
                       MaterialPageRoute(builder: (context) => ProfileScreen(widget.cities)),
                     ),
                   },
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.settings),
-                  label: Text('settings'),
-                  onPressed: () => _showSettingsPanel(context),
                 )
               ]),
           body: RefreshIndicator(
@@ -139,7 +134,12 @@ class _HomeState extends State<Home> {
                           return Container(
 
                             child: ListTile(
-
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => ProfileScreen(widget.cities)),
+                                );
+                              },
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
