@@ -98,7 +98,7 @@ class _HomeState extends State<Home> {
               elevation:0.0,
               actions: <Widget>[
                 TextButton.icon(
-                  icon:const Icon(Icons.settings),
+                  icon:const Icon(Icons.person),
                   label: Text('Profile'),
                   onPressed: () => {
                     Navigator.push(

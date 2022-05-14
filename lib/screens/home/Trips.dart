@@ -1,96 +1,79 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
+import 'package:iconsax/iconsax.dart';
+import 'package:untitled/screens/home/TripsTakenHistory.dart';
 
-import '../../ services/database.dart';
-import '../../models/bentis.dart';
-import '../post/view.dart';
+import 'TripsGivenHistory.dart';
 
-List ridesHistory = [];
-final FirebaseAuth _auth = FirebaseAuth.instance;
-final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 class Trips extends StatefulWidget {
-  const Trips({Key? key}) : super(key: key);
   @override
-  State<Trips> createState() => _Trips();
+  _TripsState createState() => _TripsState();
 }
 
-class _Trips extends State<Trips>{
+class _TripsState extends State<Trips> {
+  int _currentIndex = 0;
+  PageController pageController = PageController();
+  ScrollController scrollController = ScrollController();
+
+  final _bottomNavigationBarItems = [
+    BottomNavigationBarItem(
+        icon: Icon(IconData(0xe1d7, fontFamily: 'MaterialIcons'), color: Colors.black),
+        label: 'Joined trips',
+    ),
+    BottomNavigationBarItem(
+        icon: Icon(IconData(0xe1d7, fontFamily: 'MaterialIcons'), color: Colors.black),
+        label: 'Created trips'
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    getUserData();
-    return StreamProvider<List<Bentis1>>.value(
-        value:
-        DatabaseService(uid: FirebaseAuth.instance.currentUser.toString())
-            .Bentis,
-        initialData: [],
-        child: Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            title: const Text('Trips history'),
-            backgroundColor: Colors.black,
-            elevation: 0.0,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ),
-          body: RefreshIndicator(
-            onRefresh: _refresh,
-            child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('posts')
-                        .snapshots(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (!snapshot.hasData) {
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-
-                      return ListView(
-                        children: snapshot.data!.docs.where((element) => ridesHistory.contains(element.id)).map((document) {
-                          return Container(
-                            child: ListTile(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => ViewPost(document, true)),
-                                );
-                              },
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              title: Text("${document['departure']} -> ${document['destination']}"),
-                              subtitle: Text(
-                                  "Price: ${document['price']}€, Number of seats: ${document['seats']}"),
-                              trailing: const Icon(Icons.arrow_right_sharp),
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    })),
-          ),
-        )
+    return Scaffold(
+// #region AppBar()
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        centerTitle: true,
+        title: Text(
+          'Trips',
+          style: TextStyle(fontSize: 18),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
+// #endregion
+      body: PageView(
+        controller: pageController,
+        onPageChanged: (page){
+          setState(() {
+            _currentIndex = page;
+          });
+        },
+        children: [
+          TripsGivenHistory(),
+          TripsTakenHistory(),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        items: _bottomNavigationBarItems,
+        onTap: (index) {
+          _onItemTapped(index);
+        },
+        //type: BottomNavigationBarType.fixed,
+      ),
     );
   }
 
-  void getUserData() async {
-    await _firestore.collection("users").doc(_auth.currentUser?.uid).get().then((event) {
-      setState(() {
-        ridesHistory = event.data()!['ridesHistory'];
-      });
+  void _onItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
     });
-  }
-
-  Future<void> _refresh() {
-    return Future.delayed(const Duration(seconds: 0));
+    
+    pageController.animateToPage(index, duration: Duration(milliseconds: 500), curve: Curves.fastLinearToSlowEaseIn);
   }
 }

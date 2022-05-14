@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:untitled/screens/post/view.dart';
 
 class CreatePost extends StatefulWidget {
   final List<String>? cities;
@@ -14,7 +15,12 @@ class CreatePost extends StatefulWidget {
 
 
 }
+
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+final FirebaseAuth _auth = FirebaseAuth.instance;
+
 class _CreatePostState extends State<CreatePost> {
+  List createdRides = [];
   String departure='';
   String arrival='';
   int seats=0;
@@ -38,6 +44,7 @@ class _CreatePostState extends State<CreatePost> {
 
   @override
   Widget build(BuildContext context) {
+    getUserData();
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.black,
@@ -217,8 +224,8 @@ class _CreatePostState extends State<CreatePost> {
                             ),
                             onPressed: (){
                               if(verify()){
-                                Navigator.pop(context);
                                 submit(context);
+                                Navigator.pop(context);
                               }
                             }
                           )
@@ -231,6 +238,28 @@ class _CreatePostState extends State<CreatePost> {
           ),
         ),
     );
+  }
+
+  void getUserData() async {
+    await _firestore.collection("users").doc(_auth.currentUser?.uid).get().then((event) {
+      if(this.mounted) {
+        setState(() {
+          createdRides = event['createdRides'];
+        });
+      }
+    });
+  }
+
+  Future<void> updateBalance() async {
+    await _firestore
+        .collection('users')
+        .doc(_auth.currentUser?.uid) // <-- Doc ID where data should be updated.
+        .update({
+      'createdRides' : createdRides,
+    })
+        .then((value) {
+    })// <-- Nested value
+        .catchError((error) => print('Update failed: $error'));
   }
 
   Future pickDate(BuildContext context) async{
@@ -462,20 +491,22 @@ class _CreatePostState extends State<CreatePost> {
       return false;
     }
   }
-  bool submit(BuildContext context){
-    CollectionReference posts=FirebaseFirestore.instance.collection('posts');
+  Future<bool> submit(BuildContext context) async {
+    CollectionReference posts= FirebaseFirestore.instance.collection('posts');
+    DocumentReference ref = posts.doc();
     var user=FirebaseAuth.instance.currentUser;
     bool greatSuccess=false;
     List<String> passengers=List.empty();
-    if(user!=null){
-      DateTime postDate=date as DateTime;
-      TimeOfDay postTime=time as TimeOfDay;
-      int hour=postTime.hour;
-      int minute=postTime.minute;
+    if(user!=null) {
+      DateTime postDate = date as DateTime;
+      TimeOfDay postTime = time as TimeOfDay;
+      int hour = postTime.hour;
+      int minute = postTime.minute;
       setState(() {
-        postDate=postDate.add(Duration(hours: hour, minutes: minute));
+        postDate = postDate.add(Duration(hours: hour, minutes: minute));
       });
-      posts.add({
+
+      ref.set({
         'user': user.uid,
         'departure': departure,
         'destination': arrival,
@@ -483,20 +514,26 @@ class _CreatePostState extends State<CreatePost> {
         'date': postDate,
         'price': price,
         'passengers': passengers,
-      })
-          .then((value) => {
+      }
+      )
+          .then((value) =>
+      {
         print("post added"),
+        createdRides.add(ref.id),
+        updateBalance(),
         setState(() {
-          greatSuccess=true;
+          greatSuccess = true;
         }),
       })
-          .catchError((error) => {
+          .catchError((error) =>
+      {
         print("Failed to add post: $error"),
         setState(() {
-          greatSuccess=false;
+          greatSuccess = false;
         }),
       });
     }
+
     return greatSuccess;
   }
 }
