@@ -78,7 +78,7 @@ class _HomeState extends State<Home> {
                 .Bentis,
         initialData: [],
         child: Scaffold(
-          backgroundColor: Colors.brown[50],
+          backgroundColor: Colors.white,
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
             backgroundColor: Colors.black,
@@ -137,7 +137,7 @@ class _HomeState extends State<Home> {
                               onTap: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => ViewPost(document)),
+                                  MaterialPageRoute(builder: (context) => ViewPost(document, false)),
                                 );
                               },
                               shape: RoundedRectangleBorder(
