@@ -11,9 +11,13 @@ List ridesHistory = [];
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-class Trips extends StatelessWidget {
+class Trips extends StatefulWidget {
   const Trips({Key? key}) : super(key: key);
+  @override
+  State<Trips> createState() => _Trips();
+}
 
+class _Trips extends State<Trips>{
   @override
   Widget build(BuildContext context) {
     getUserData();
@@ -80,7 +84,9 @@ class Trips extends StatelessWidget {
 
   void getUserData() async {
     await _firestore.collection("users").doc(_auth.currentUser?.uid).get().then((event) {
-      ridesHistory = event.data()!['ridesHistory'];
+      setState(() {
+        ridesHistory = event.data()!['ridesHistory'];
+      });
     });
   }
 
