@@ -19,6 +19,7 @@ double balance = 0.0;
 String amountToAdd = "";
 var _formKey = GlobalKey<FormState>();
 
+
 class _TopUp extends State<TopUp> {
   @override
   Widget build(BuildContext context) {
@@ -44,7 +45,7 @@ class _TopUp extends State<TopUp> {
               children: [
                 Row(
                   children: [
-                    Text(" Enter amount to add to balance.", style: TextStyle(
+                    Text(" Enter amount to add.", style: TextStyle(
                         color: Colors.black, fontSize: 25.0, fontWeight: FontWeight.w500)),
                   ],
                 ),
@@ -57,12 +58,13 @@ class _TopUp extends State<TopUp> {
                       amountToAdd = val;
                     });
                   },
+
                   inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.all(0.0),
                     labelText: 'Amount',
-                    hintText: 'Enter amount to add in euros',
+                    hintText: 'Enter amount to add',
                     labelStyle: TextStyle(
                       color: Colors.black,
                       fontSize: 14.0,
@@ -121,10 +123,12 @@ class _TopUp extends State<TopUp> {
       String firstName = event.data()!['name'];
       String lastName = event.data()!['surname'];
 
-      setState(() {
-        fullName = firstName + " " + lastName;
-        balance = event.data()!['balance'];
-      });
+      if(this.mounted) {
+        setState(() {
+          fullName = firstName + " " + lastName;
+          balance = double.parse(event.data()!['balance'].toString());
+        });
+      }
     });
   }
 

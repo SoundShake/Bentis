@@ -15,7 +15,7 @@ class Wallet extends StatefulWidget{
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 final FirebaseAuth _auth = FirebaseAuth.instance;
 String fullName = "";
-double balance = 0.0;
+double balance = 0.01;
 
 class _WalletState extends State<Wallet> {
   @override
@@ -77,15 +77,17 @@ class _WalletState extends State<Wallet> {
     );
   }
 
-  void getName() async {
+  Future<void> getName() async {
     await _firestore.collection("users").doc(_auth.currentUser?.uid).get().then((event) {
       String firstName = event.data()!['name'];
       String lastName = event.data()!['surname'];
 
-      setState(() {
-        fullName = firstName + " " + lastName;
-        balance = event.data()!['balance'];
-      });
+      if(this.mounted) {
+        setState(() {
+          fullName = firstName + " " + lastName;
+          balance = double.parse(event.data()!['balance'].toString());
+        });
+      }
     });
   }
 }
