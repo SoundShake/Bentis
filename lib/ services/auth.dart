@@ -35,7 +35,7 @@ class AuthService
     try{
       UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
       User? user = result.user;
-      return _userFromFirebaseUser(user!);
+      return _userFromFirebaseUser(user);
     }
     catch(e)
     {
@@ -53,7 +53,7 @@ class AuthService
       //create a new document for user with the uid
 
       await DatabaseService(uid: user!.uid).updateUserData('name', 'surname', 'phoneNumber','imageUrl');
-      return _userFromFirebaseUser(user!);
+      return _userFromFirebaseUser(user);
 
     }
     catch(e)

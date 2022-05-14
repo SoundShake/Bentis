@@ -162,13 +162,15 @@ class _ViewPostState extends State<ViewPost>{
 
   void getUserData() async {
     await _firestore.collection("users").doc(_auth.currentUser?.uid).get().then((event) {
-      setState(() {
-        String firstName = event.data()!['name'];
-        String lastName = event.data()!['surname'];
-        currentUserName = firstName + " " + lastName;
-        currentBalance = event.data()!['balance'];
-        ridesHistory = event.data()!['ridesHistory'];
-      });
+      if(this.mounted) {
+        setState(() {
+          String firstName = event.data()!['name'];
+          String lastName = event.data()!['surname'];
+          currentUserName = firstName + " " + lastName;
+          currentBalance = event.data()!['balance'];
+          ridesHistory = event.data()!['ridesHistory'];
+        });
+      }
     });
   }
 
@@ -180,13 +182,13 @@ class _ViewPostState extends State<ViewPost>{
       });
       passengers=widget.post.get("passengers");
       passengers.add(user.uid);
-      ridesHistory.add(widget.post.id);
       widget.post.reference.update({
         "seats": seats,
         "passengers": passengers,
       });
     }
     widget.post=await widget.post.reference.get();
+    ridesHistory.add(widget.post.id);
     updateBalance();
     setState(() {});
   }
