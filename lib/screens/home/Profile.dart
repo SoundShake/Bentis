@@ -15,6 +15,7 @@ import 'Setting.dart';
 import 'Support.dart';
 import '../../shared/constants.dart';
 import 'Trips.dart';
+import 'Wallet.dart';
 
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -133,21 +134,20 @@ class _ProfileScreen extends State<ProfileScreen> {
     return Builder(
       builder: (context) {
         return Scaffold(
-          appBar: PreferredSize(
-            preferredSize: Size.fromHeight(28),
-            child: AppBar(
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              leading: IconButton(
-                icon: Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.black,
+            title: const Text('Profile'),
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                Navigator.pop(context);
+              }
             ),
           ),
           body: Column(
             children: <Widget>[
+              SizedBox(height: 15,),
               header,
               Expanded(
                 child: Column(
@@ -190,6 +190,19 @@ class _ProfileScreen extends State<ProfileScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => Setting()),
+                            )
+                          }
+                      ),
+                      SizedBox(height: 15),
+                      ElevatedButton.icon(
+                        icon: const Icon(LineAwesomeIcons.alternate_sign_out),
+                        label: const Text('Wallet'),
+                        style:ElevatedButton.styleFrom(fixedSize: const Size(240, 15), primary: Colors.black),
+                          onPressed:()=>
+                          {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => Wallet()),
                             )
                           }
                       ),
