@@ -11,6 +11,7 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
 List passengers = List.filled(5, 0, growable: true);
 String currentUserName = "";
 String postUserName = "";
+double currentBalance = 0.0;
 bool canJoinTheRide = false;
 
 class ViewPost extends StatefulWidget{
@@ -31,8 +32,8 @@ class _ViewPostState extends State<ViewPost>{
 
   @override
   Widget build(BuildContext context){
-    getData();
-    getName();
+    getPostData();
+    getUserData();
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -92,7 +93,6 @@ class _ViewPostState extends State<ViewPost>{
                   ),
                   onPressed: () => {
                     if (currentUserName == postUserName) {
-                      canJoinTheRide = false,
                       Flushbar(
                         padding: EdgeInsets.all(10),
                         backgroundColor: Colors.red.shade900,
@@ -113,8 +113,20 @@ class _ViewPostState extends State<ViewPost>{
                         dismissDirection: FlushbarDismissDirection.HORIZONTAL,
                         forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
                         title: 'Joining ride was denied.',
-                        message: 'User already has joined the ride.',
+                        message: 'You\'ve already joined the ride.',
                       ).show(context),
+                    }
+                    else if(price > currentBalance) {
+                        Flushbar(
+                          padding: EdgeInsets.all(10),
+                          backgroundColor: Colors.red.shade900,
+
+                          duration: Duration(seconds: 3),
+                          dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+                          forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+                          title: 'Joining ride was denied.',
+                          message: 'Your current balance is too low to join the ride.',
+                        ).show(context),
                     }
                     else if(seats>0){
                         joinPost(),
@@ -127,7 +139,7 @@ class _ViewPostState extends State<ViewPost>{
       )
     );
   }
-  Future<void> getData() async{
+  Future<void> getPostData() async{
     date=DateTime.parse(widget.post.get("date").toDate().toString());
     departure=widget.post.get("departure");
     arrival=widget.post.get("destination");
@@ -136,12 +148,13 @@ class _ViewPostState extends State<ViewPost>{
     driverRef=FirebaseFirestore.instance.collection("users").doc(widget.post.get("user")).get();
   }
 
-  void getName() async {
+  void getUserData() async {
     await _firestore.collection("users").doc(_auth.currentUser?.uid).get().then((event) {
       String firstName = event.data()!['name'];
       String lastName = event.data()!['surname'];
       currentUserName = firstName + " " + lastName;
       passengers = widget.post.get("passengers");
+      currentBalance = event.data()!['balance'];
     });
   }
 
@@ -159,7 +172,31 @@ class _ViewPostState extends State<ViewPost>{
       });
     }
     widget.post=await widget.post.reference.get();
+    updateBalance();
     setState(() {});
+  }
+
+  Future<void> updateBalance() async {
+    setState(() {
+      currentBalance = currentBalance - price;
+    });
+
+    await _firestore
+        .collection('users')
+        .doc(_auth.currentUser?.uid) // <-- Doc ID where data should be updated.
+        .update({'balance' : currentBalance})
+        .then((value) {
+      Flushbar(
+        padding: EdgeInsets.all(10),
+        backgroundColor: Colors.green.shade900,
+
+        duration: Duration(seconds: 2),
+        dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+        forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+        message: 'You\'ve successfully joined the ride.',
+      ).show(context);
+    })// <-- Nested value
+        .catchError((error) => print('Update failed: $error'));
   }
 }
 class driverDisplay extends StatelessWidget{

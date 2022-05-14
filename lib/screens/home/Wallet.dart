@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'TopUp.dart';
+
 class Wallet extends StatefulWidget{
   Wallet({Key? key}) : super(key: key);
 
@@ -48,26 +50,24 @@ class _WalletState extends State<Wallet> {
                   children: [
                     Text("Current balance: ", style: TextStyle(
                     color: Colors.black, fontSize: 25.0, fontWeight: FontWeight.w500)),
-                    Text(balance.toString() + " \€", style: TextStyle(
+                    Text(balance.toStringAsFixed(2) + " \€", style: TextStyle(
                         color: Colors.green.shade900, fontSize: 25.0, fontWeight: FontWeight.w900)),
                   ],
                 ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  heightFactor: 10,
-                  child: MaterialButton(
-                    minWidth: double.infinity,
-                    onPressed: () {
-
+                const Expanded(child: SizedBox(height: 15),),
+                MaterialButton(
+                  minWidth: double.infinity,
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => TopUp()));
                     },
-                    color: Colors.black,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                    child: Text(
-                        "TOP UP WALLET", style: TextStyle(color: Colors.white)
-                    ),
+                  color: Colors.black,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  child: Text(
+                      "Top up wallet", style: TextStyle(color: Colors.white)
                   ),
                 ),
               ],
@@ -81,9 +81,11 @@ class _WalletState extends State<Wallet> {
     await _firestore.collection("users").doc(_auth.currentUser?.uid).get().then((event) {
       String firstName = event.data()!['name'];
       String lastName = event.data()!['surname'];
-      fullName = firstName + " " + lastName;
 
-      balance = event.data()!['balance'];
+      setState(() {
+        fullName = firstName + " " + lastName;
+        balance = event.data()!['balance'];
+      });
     });
   }
 }
