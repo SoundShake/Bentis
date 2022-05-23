@@ -10,6 +10,7 @@ final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 final FirebaseAuth _auth = FirebaseAuth.instance;
 List passengers = [];
 List ridesHistory = [];
+List createdRides = [];
 String currentUserName = "";
 String postUserName = "";
 double currentBalance = 0.0;
@@ -20,7 +21,6 @@ class ViewPost extends StatefulWidget{
   DocumentSnapshot post;
   bool comesFromUserTrips;
   ViewPost(this.post, this.comesFromUserTrips, {Key? key}) : super(key: key);
-
   @override
   _ViewPostState createState() => _ViewPostState();
 }
@@ -144,6 +144,49 @@ class _ViewPostState extends State<ViewPost>{
                     }
                   },
               ),
+              !widget.comesFromUserTrips ? const SizedBox.shrink() :
+              ElevatedButton(
+
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                  minimumSize: MaterialStateProperty.all(Size.fromHeight(40)),
+                ),
+                onPressed: () => {
+
+
+                  if (currentUserName == postUserName) {
+                    removePost(),
+                    Flushbar(
+                      padding: EdgeInsets.all(10),
+                      backgroundColor: Colors.green,
+
+                      duration: Duration(seconds: 3),
+                      dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+                      forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+                      title: 'Post was deleted.',
+                      message: 'Successfully deleted',
+                    ).show(context),
+                  }
+                  else if(passengers.contains(_auth.currentUser?.uid)) {
+                    Flushbar(
+                      padding: EdgeInsets.all(10),
+                      backgroundColor: Colors.red.shade900,
+
+                      duration: Duration(seconds: 3),
+                      dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+                      forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+                      title: 'You cant delete the post',
+                      message: 'You are not the owner',
+                    ).show(context),
+                  }
+                },
+              ),
             ],
           ),
         ),
@@ -169,6 +212,7 @@ class _ViewPostState extends State<ViewPost>{
           currentUserName = firstName + " " + lastName;
           currentBalance = event.data()!['balance'];
           ridesHistory = event.data()!['ridesHistory'];
+          createdRides = event.data()!['createdRides'];
         });
       }
     });
@@ -192,6 +236,23 @@ class _ViewPostState extends State<ViewPost>{
     updateBalance();
     setState(() {});
   }
+
+  Future<void> removePost() async{
+    widget.post=await widget.post.reference.get();
+    createdRides.remove(widget.post.id);
+    await _firestore
+        .collection('posts')
+        .doc(widget.post.id) // <-- Doc ID where data should be updated.
+        .delete();
+    await _firestore
+        .collection('users')
+        .doc(widget.post.id) // <-- Doc ID where data should be updated.
+        .update({
+          'createdRides' : createdRides
+        });
+
+  }
+
 
   Future<void> updateBalance() async {
     setState(() {
