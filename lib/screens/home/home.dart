@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled/%20services/auth.dart';
 import 'package:untitled/%20services/database.dart';
@@ -145,7 +146,7 @@ class _HomeState extends State<Home> {
                               ),
                               title: Text("${document['departure']} -> ${document['destination']}"),
                               subtitle: Text(
-                                  "Price: ${document['price']}€, Number of seats: ${document['seats']}"),
+                                  "Price: ${document['price']}€, Number of seats: ${document['seats']}\nDate: ${DateFormat("yyyy-MM-dd hh:mm").format(DateTime.parse(document['date'].toDate().toString()))}"),
                               trailing: const Icon(Icons.arrow_right_sharp),
                             ),
                           );

@@ -364,7 +364,7 @@ class _CreatePostState extends State<CreatePost> {
   }
 
   bool validateDeparture(){
-    if(departure!='' || departure!=arrival){
+    if(departure!='' && departure!=arrival){
       setState(() {
         wrongDeparture=false;
       });
@@ -378,7 +378,7 @@ class _CreatePostState extends State<CreatePost> {
     }
   }
   bool validateArrival(){
-    if(arrival!='' || departure!=arrival){
+    if(arrival!='' && departure!=arrival){
       setState(() {
         wrongArrival=false;
       });

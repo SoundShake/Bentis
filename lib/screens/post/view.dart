@@ -15,6 +15,9 @@ String currentUserName = "";
 String postUserName = "";
 double currentBalance = 0.0;
 bool canJoinTheRide = false;
+String driverNumber = "";
+bool joined=false;
+String creator="";
 
 
 class ViewPost extends StatefulWidget{
@@ -38,159 +41,74 @@ class _ViewPostState extends State<ViewPost>{
     getPostData();
     getUserData();
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text('View post'),
-      ),
-      body: Form(
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Text("Date: "+DateFormat('yyyy-MM-dd HH:mm').format(date as DateTime)),
-                ],
-              ),
-              const SizedBox(height: 15),
-              Row(
-                children: [
-                  Text("Departure: "+departure),
-                ],
-              ),
-              const SizedBox(height: 15),
-              Row(
-                children: [
-                  Text("Destination: "+arrival),
-                ],
-              ),
-              const SizedBox(height: 15),
-              Row(
-                children: [
-                  Text("Price: "+price.toString()+" €"),
-                ],
-              ),
-
-              widget.comesFromUserTrips ? SizedBox.shrink() :
-              const SizedBox(height: 15),
-              widget.comesFromUserTrips ? SizedBox.shrink() :
-              Row(
-                children: [
-                  Text("Seats: "+seats.toString()),
-                ],
-              ),
-              const SizedBox(height: 15),
-              Row(
-                children: [
-                  driverDisplay(driverRef),
-                ],
-              ),
-              widget.comesFromUserTrips ? SizedBox.shrink() :
-              const SizedBox(height: 15),
-              widget.comesFromUserTrips ? const SizedBox.shrink() :
-              ElevatedButton(
-
-                  child: const Text(
-                    'Join',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
-                    minimumSize: MaterialStateProperty.all(Size.fromHeight(40)),
-                  ),
-                  onPressed: () => {
-
-
-                    if (currentUserName == postUserName) {
-                      Flushbar(
-                        padding: EdgeInsets.all(10),
-                        backgroundColor: Colors.red.shade900,
-
-                        duration: Duration(seconds: 3),
-                        dismissDirection: FlushbarDismissDirection.HORIZONTAL,
-                        forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-                        title: 'Joining ride was denied.',
-                        message: 'Creator of the post can\'t join their own ride.',
-                      ).show(context),
-                    }
-                    else if(passengers.contains(_auth.currentUser?.uid)) {
-                      Flushbar(
-                        padding: EdgeInsets.all(10),
-                        backgroundColor: Colors.red.shade900,
-
-                        duration: Duration(seconds: 3),
-                        dismissDirection: FlushbarDismissDirection.HORIZONTAL,
-                        forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-                        title: 'Joining ride was denied.',
-                        message: 'You\'ve already joined the ride.',
-                      ).show(context),
-                    }
-                    else if(price > currentBalance) {
-                        Flushbar(
-                          padding: EdgeInsets.all(10),
-                          backgroundColor: Colors.red.shade900,
-
-                          duration: Duration(seconds: 3),
-                          dismissDirection: FlushbarDismissDirection.HORIZONTAL,
-                          forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-                          title: 'Joining ride was denied.',
-                          message: 'Your current balance is too low to join the ride.',
-                        ).show(context),
-                    }
-                    else if(seats>0){
-                        joinPost(),
-                    }
-                  },
-              ),
-              !widget.comesFromUserTrips ? const SizedBox.shrink() :
-              ElevatedButton(
-
-                child: const Text(
-                  'Delete',
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
-                  minimumSize: MaterialStateProperty.all(Size.fromHeight(40)),
-                ),
-                onPressed: () => {
-
-
-                  if (currentUserName == postUserName) {
-                    removePost(),
-                    Flushbar(
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Colors.green,
-
-                      duration: Duration(seconds: 3),
-                      dismissDirection: FlushbarDismissDirection.HORIZONTAL,
-                      forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-                      title: 'Post was deleted.',
-                      message: 'Successfully deleted',
-                    ).show(context),
-                  }
-                  else if(passengers.contains(_auth.currentUser?.uid)) {
-                    Flushbar(
-                      padding: EdgeInsets.all(10),
-                      backgroundColor: Colors.red.shade900,
-
-                      duration: Duration(seconds: 3),
-                      dismissDirection: FlushbarDismissDirection.HORIZONTAL,
-                      forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
-                      title: 'You cant delete the post',
-                      message: 'You are not the owner',
-                    ).show(context),
-                  }
-                },
-              ),
-            ],
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          title: const Text('View post'),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context);
+            },
           ),
         ),
-      )
+        body: Form(
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Text("Date: "+DateFormat('yyyy-MM-dd HH:mm').format(date as DateTime)),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    Text("Departure: "+departure),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    Text("Destination: "+arrival),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    Text("Price: "+price.toString()+" €"),
+                  ],
+                ),
+
+                widget.comesFromUserTrips ? SizedBox.shrink() :
+                const SizedBox(height: 15),
+                widget.comesFromUserTrips ? SizedBox.shrink() :
+                Row(
+                  children: [
+                    Text("Seats: "+seats.toString()),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    driverDisplay(driverRef),
+                  ],
+                ),
+
+                !passengers.contains(_auth.currentUser?.uid) ? SizedBox.shrink() : const SizedBox(height:15),
+                !passengers.contains(_auth.currentUser?.uid) ? SizedBox.shrink() :
+                Row(
+                  children: [
+                    Text("Drivers number: " + driverNumber),
+                  ],
+                ),
+                widget.comesFromUserTrips ? SizedBox.shrink() :
+                const SizedBox(height: 15),
+                postButton()
+              ],
+            ),
+          ),
+        )
     );
   }
   Future<void> getPostData() async{
@@ -200,6 +118,8 @@ class _ViewPostState extends State<ViewPost>{
     price=widget.post.get("price");
     seats=widget.post.get("seats");
     passengers = widget.post.get("passengers");
+    joined=passengers.contains(_auth.currentUser?.uid);
+    creator=widget.post.get("user");
     driverRef=FirebaseFirestore.instance.collection("users").doc(widget.post.get("user")).get();
   }
 
@@ -234,6 +154,34 @@ class _ViewPostState extends State<ViewPost>{
     widget.post=await widget.post.reference.get();
     ridesHistory.add(widget.post.id);
     updateBalance();
+    joined=true;
+    setState(() {});
+  }
+
+  Future<void> leavePost() async{
+    var user=FirebaseAuth.instance.currentUser;
+    if(user!=null){
+      setState(() {
+        seats+=1;
+      });
+      passengers=widget.post.get("passengers");
+      passengers.remove(user.uid);
+      widget.post.reference.update({
+        "seats": seats,
+        "passengers": passengers,
+      });
+    }
+    widget.post=await widget.post.reference.get();
+    ridesHistory.remove(widget.post.id);
+    currentBalance+=price;
+    await _firestore
+        .collection('users')
+        .doc(_auth.currentUser?.uid) // <-- Doc ID where data should be updated.
+        .update({
+      'balance' : currentBalance,
+      'ridesHistory' : ridesHistory
+    });
+    joined=false;
     setState(() {});
   }
 
@@ -248,11 +196,125 @@ class _ViewPostState extends State<ViewPost>{
         .collection('users')
         .doc(widget.post.id) // <-- Doc ID where data should be updated.
         .update({
-          'createdRides' : createdRides
-        });
+      'createdRides' : createdRides
+    });
 
   }
 
+  Widget postButton(){
+    if(_auth.currentUser?.uid==creator){
+      return ElevatedButton(
+        child: const Text(
+          'Delete',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+          minimumSize: MaterialStateProperty.all(Size.fromHeight(40)),
+        ),
+        onPressed: () => {
+          if (currentUserName == postUserName) {
+            Navigator.pop(context),
+            removePost(),
+            Flushbar(
+              padding: EdgeInsets.all(10),
+              backgroundColor: Colors.green,
+
+              duration: Duration(seconds: 3),
+              dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+              forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+              title: 'Post was deleted.',
+              message: 'Successfully deleted',
+            ).show(context),
+          }
+          else if(passengers.contains(_auth.currentUser?.uid)) {
+            Flushbar(
+              padding: EdgeInsets.all(10),
+              backgroundColor: Colors.red.shade900,
+
+              duration: Duration(seconds: 3),
+              dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+              forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+              title: 'You cant delete the post',
+              message: 'You are not the owner',
+            ).show(context),
+          }
+        },
+      );
+    }
+    else if(joined){
+      return ElevatedButton(
+        child: const Text(
+          'Leave',
+          style: TextStyle(color: Colors.white),
+        ),
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+          minimumSize: MaterialStateProperty.all(Size.fromHeight(40)),
+        ),
+        onPressed: () => {
+          leavePost()
+        },
+      );
+    }
+    else{
+      return ElevatedButton(
+        child: const Text(
+          'Join',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+          minimumSize: MaterialStateProperty.all(Size.fromHeight(40)),
+        ),
+        onPressed: () => {
+          if (currentUserName == postUserName) {
+            Flushbar(
+              padding: EdgeInsets.all(10),
+              backgroundColor: Colors.red.shade900,
+
+              duration: Duration(seconds: 3),
+              dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+              forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+              title: 'Joining ride was denied.',
+              message: 'Creator of the post can\'t join their own ride.',
+            ).show(context),
+          }
+          else if(passengers.contains(_auth.currentUser?.uid)) {
+            Flushbar(
+              padding: EdgeInsets.all(10),
+              backgroundColor: Colors.red.shade900,
+
+              duration: Duration(seconds: 3),
+              dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+              forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+              title: 'Joining ride was denied.',
+              message: 'You\'ve already joined the ride.',
+            ).show(context),
+          }
+          else if(price > currentBalance) {
+              Flushbar(
+                padding: EdgeInsets.all(10),
+                backgroundColor: Colors.red.shade900,
+
+                duration: Duration(seconds: 3),
+                dismissDirection: FlushbarDismissDirection.HORIZONTAL,
+                forwardAnimationCurve: Curves.fastLinearToSlowEaseIn,
+                title: 'Joining ride was denied.',
+                message: 'Your current balance is too low to join the ride.',
+              ).show(context),
+            }
+            else if(seats>0){
+                joinPost(),
+              }
+        },
+      );
+    }
+  }
 
   Future<void> updateBalance() async {
     setState(() {
@@ -263,9 +325,9 @@ class _ViewPostState extends State<ViewPost>{
         .collection('users')
         .doc(_auth.currentUser?.uid) // <-- Doc ID where data should be updated.
         .update({
-          'balance' : currentBalance,
-          'ridesHistory' : ridesHistory
-        })
+      'balance' : currentBalance,
+      'ridesHistory' : ridesHistory
+    })
         .then((value) {
       Flushbar(
         padding: EdgeInsets.all(10),
@@ -287,22 +349,23 @@ class driverDisplay extends StatelessWidget{
   @override
   Widget build(BuildContext context){
     return FutureBuilder<String>(
-      future: snapshot(),
-      builder: (context, AsyncSnapshot<String> snapshot){
-        if(snapshot.hasData){
-          postUserName = snapshot.data as String;
-          return Text("Driver: "+(snapshot.data as String));
+        future: snapshot(),
+        builder: (context, AsyncSnapshot<String> snapshot){
+          if(snapshot.hasData){
+            postUserName = snapshot.data as String;
+            return Text("Driver: "+(snapshot.data as String));
+          }
+          else{
+            return CircularProgressIndicator();
+          }
         }
-        else{
-          return CircularProgressIndicator();
-        }
-      }
     );
   }
 
   Future<String> snapshot() async{
     DocumentSnapshot? doc=await driver;
     String name=(doc as DocumentSnapshot).get("name")+" "+(doc as DocumentSnapshot).get("surname");
+    driverNumber = doc.get("phoneNumber");
     return name;
   }
 }
